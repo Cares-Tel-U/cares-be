@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MAHASISWA
+  TENAGA_KEPENDIDIKAN
+  DOSEN
+  SARPRAS
+}
+
+enum StatusPelaporan {
+  PENDING
+  DIPROSES
+  SELESAI
+  DITOLAK
+}
+
+enum KategoriFasilitas {
+  KELAS
+  LABORATORIUM
+  TOILET
+  PARKIRAN
+  KANTIN
+  LAINNYA
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  nama      String
+  role      Role     @default(MAHASISWA)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports       Report[]       @relation("UserReports")
+  notifications Notification[]
+}
+
+model Facility {
+  id        String            @id @default(uuid())
+  nama      String
+  lokasi    String
+  kategori  KategoriFasilitas
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  reports Report[]
+}
+
+model Report {
+  id          String          @id @default(uuid())
+  judul       String
+  deskripsi   String
+  status      StatusPelaporan @default(PENDING)
+  catatan     String?
+  userId      String
+  facilityId  String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user          User          @relation("UserReports", fields: [userId], references: [id])
+  facility      Facility      @relation(fields: [facilityId], references: [id])
+  photos        ReportPhoto[]
+  notifications Notification[]
+}
+
+model ReportPhoto {
+  id        String   @id @default(uuid())
+  url       String
+  reportId  String
+  createdAt DateTime @default(now())
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  pesan     String
+  isRead    Boolean  @default(false)
+  userId    String
+  reportId  String?
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report Report? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+}

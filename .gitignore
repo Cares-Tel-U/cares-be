@@ -1,0 +1,9 @@
+node_modules
+.env
+dist
+uploads
+.agents
+.claude
+.cursor
+.devin
+.postman
