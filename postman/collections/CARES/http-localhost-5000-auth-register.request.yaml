@@ -1,0 +1,20 @@
+$kind: http-request
+name: http://localhost:5000/auth/register
+description: ""
+url: http://localhost:5000/auth/register
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"nama\": \"siswa\",\r
+
+    \  \"email\": \"email_baru_kamu@email.com\",\r
+
+    \  \"password\": \"password123\",\r
+
+    \  \"role\": \"MAHASISWA\"\r
+
+    }"
+examples: .resources/http-localhost-5000-auth-register.resources/examples
+order: 1789880969360

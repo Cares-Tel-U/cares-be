@@ -1,0 +1,45 @@
+$kind: http-example
+name: http://localhost:5000/auth/register
+request:
+  url: http://localhost:5000/auth/register
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \  \"nama\": \"siswa\",\r
+
+      \  \"email\": \"email_baru_kamu@email.com\",\r
+
+      \  \"password\": \"password123\",\r
+
+      \  \"role\": \"MAHASISWA\"\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-powered-by: Express
+    access-control-allow-origin: "*"
+    content-type: application/json; charset=utf-8
+    content-length: "234"
+    etag: W/"ea-gpaJncbBwwaxobHnfT56RtWwxnk"
+    date: Sun, 20 Sep 2026 05:09:44 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: |-
+      {
+        "message": "Registrasi berhasil",
+        "data": {
+          "id": "948597b4-bec9-4ec9-9d21-198c037284cf",
+          "email": "email_baru_kamu@email.com",
+          "nama": "siswa",
+          "role": "MAHASISWA",
+          "createdAt": "2026-09-20T05:09:44.341Z",
+          "updatedAt": "2026-09-20T05:09:44.341Z"
+        }
+      }
+order: 1789881092611
