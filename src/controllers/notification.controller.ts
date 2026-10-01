@@ -32,6 +32,10 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
+    if (!id) {
+      return res.status(400).json({ message: 'ID notifikasi wajib diisi.' });
+    }
+
     const notification = await prisma.notification.update({
       where: { id },
       data: { isRead: true },

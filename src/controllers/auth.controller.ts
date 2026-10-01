@@ -86,7 +86,11 @@ export const login = async (req: Request, res: Response) => {
 // 3. Get Profile User (Protected Route)
 export const getProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.userId ?? req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User ID tidak ditemukan.' });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },

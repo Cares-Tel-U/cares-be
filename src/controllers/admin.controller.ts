@@ -41,6 +41,10 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { status, refectionReason } = req.body;
 
+    if (!id) {
+      return res.status(400).json({ message: 'ID laporan wajib diisi.' });
+    }
+
     // Sesuai enum Prisma: PENDING, DIPROSES, SELESAI, DITOLAK
     const validStatuses = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK'];
     if (!validStatuses.includes(status)) {
@@ -100,7 +104,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     // Agregasi statistik tren harian untuk Line Chart Figma
     const trendMap: { [key: string]: number } = {};
     reports.forEach((report) => {
-      const dateKey = report.createdAt.toISOString().split('T')[0];
+      const dateKey = report.createdAt.toISOString().slice(0, 10);
       trendMap[dateKey] = (trendMap[dateKey] || 0) + 1;
     });
 

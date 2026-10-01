@@ -7,14 +7,22 @@ const prisma = new PrismaClient();
 // 1. Buat Laporan Kerusakan Baru (POST /reports)
 export const createReport = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
-    const { facilityId, deskripsi, isAnonymous } = req.body;
+    const userId = req.user?.userId ?? req.user?.id;
+    const { facilityId, judul, deskripsi, isAnonymous } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User ID tidak ditemukan.' });
+    }
+
+    if (isAnonymous) {
+      return res.status(400).json({ message: 'Laporan anonim belum didukung.' });
+    }
 
     // Cek apakah ada laporan aktif yang belum selesai di fasilitas yang sama
     const activeReport = await prisma.report.findFirst({
       where: {
         facilityId,
-        status: { in: ['PENDING', 'PROSES'] },
+        status: { in: ['PENDING', 'DIPROSES'] },
       },
     });
 
@@ -28,9 +36,9 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     const newReport = await prisma.report.create({
       data: {
         facilityId,
-        userId: isAnonymous ? null : userId,
+        judul,
+        userId,
         deskripsi,
-        isAnonymous: isAnonymous || false,
         status: 'PENDING',
       },
     });
@@ -47,7 +55,11 @@ export const createReport = async (req: AuthRequest, res: Response) => {
 // 2. Ambil Riwayat Laporan User (GET /reports/my-reports)
 export const getMyReports = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.userId ?? req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User ID tidak ditemukan.' });
+    }
 
     const reports = await prisma.report.findMany({
       where: { userId },
