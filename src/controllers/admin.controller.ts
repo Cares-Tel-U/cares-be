@@ -1,10 +1,11 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { createNotification } from '../utils/notification.util';
 
 const prisma = new PrismaClient();
 
-// 1. Get All Reports
+// 1. Get All Reports (Khusus Admin / SARPRAS)
 export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => {
   try {
     const { status } = req.query;
@@ -34,13 +35,13 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
   }
 };
 
-// 2. Update Status Laporan
+// 2. Update Status Laporan & Trigger Notifikasi Otomatis
 export const updateReportStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status, refectionReason } = req.body;
 
-    // Perbaikan: Gunakan 'DIPROSES' sesuai enum Prisma
+    // Sesuai enum Prisma: PENDING, DIPROSES, SELESAI, DITOLAK
     const validStatuses = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Status laporan tidak valid.' });
@@ -60,6 +61,10 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
       },
     });
 
+    // Pemicu Notifikasi Otomatis ke Pengguna (Use Case No. 9)
+    const pesanNotif = `Status laporan Anda (#${updatedReport.id.substring(0, 8)}) telah diperbarui menjadi ${status}.`;
+    await createNotification(updatedReport.userId, updatedReport.id, pesanNotif);
+
     return res.status(200).json({
       message: `Status laporan berhasil diperbarui menjadi ${status}`,
       data: updatedReport,
@@ -69,15 +74,13 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 3. Get Dashboard Stats & Chart Data (Fixed 500 Error)
+// 3. Get Dashboard Stats & Chart Data (Grafik Tren Figma)
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
     const { timeframe } = req.query;
 
     const totalReports = await prisma.report.count();
     const pendingReports = await prisma.report.count({ where: { status: 'PENDING' } });
-    
-    // Perbaikan: Pakai 'DIPROSES'
     const inProgressReports = await prisma.report.count({ where: { status: 'DIPROSES' } });
     const completedReports = await prisma.report.count({ where: { status: 'SELESAI' } });
     const rejectedReports = await prisma.report.count({ where: { status: 'DITOLAK' } });
@@ -94,7 +97,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Agregasi tren per hari agar grafik terformat rapi
+    // Agregasi statistik tren harian untuk Line Chart Figma
     const trendMap: { [key: string]: number } = {};
     reports.forEach((report) => {
       const dateKey = report.createdAt.toISOString().split('T')[0];
