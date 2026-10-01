@@ -54,83 +54,30 @@ backend/
 ├── tsconfig.json             # Konfigurasi compiler TypeScript
 └── README.md                 # Dokumentasi utama proyek
 
-🚀 Panduan Memulai (Quick Start)
-1. Prasyarat Sistem
-Node.js (v18.x atau versi lebih baru)
+<h2>🚀 Panduan Memulai (Quick Start)</h2>
 
-PostgreSQL Database (Lokal/Cloud)
+<h3>1. Prasyarat Sistem</h3>
+<ul>
+  <li><strong>Node.js</strong> (v18.x atau versi lebih baru)</li>
+  <li><strong>PostgreSQL Database</strong> (Lokal / Cloud)</li>
+  <li><strong>Package Manager</strong> (<code>npm</code>, <code>yarn</code>, atau <code>pnpm</code>)</li>
+</ul>
 
-Package Manager (npm, yarn, atau pnpm)
-
-2. Konfigurasi Environment Variable
-Salin file .env.example menjadi .env di direktori utama backend:
-
-PORT=5000
+<h3>2. Konfigurasi Environment Variable</h3>
+<p>Salin file <code>.env.example</code> menjadi <code>.env</code> di direktori utama backend:</p>
+<pre><code>PORT=5000
 DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/cares_db?schema=public"
-JWT_SECRET="super_secret_jwt_key_cares_2026"
+JWT_SECRET="super_secret_jwt_key_cares_2026"</code></pre>
 
-3. Instalasi Dependensi
-Jalankan perintah berikut di terminal:
-npm install
+3. Instalasi Dependensi</h3>
+<p>Jalankan perintah berikut di terminal:</p>
+<pre><code>npm install</code></pre>
 
-4. Setup Database & Prisma Migrations
-Generate Prisma Client dan jalankan migrasi tabel ke PostgreSQL:
+<h3>4. Setup Database & Prisma Migrations</h3>
+<p>Generate Prisma Client dan jalankan migrasi tabel ke PostgreSQL:</p>
+<pre><code>npx prisma migrate dev --name init
+npx prisma generate</code></pre>
 
-npx prisma migrate dev --name init
-npx prisma generate
-
-5. Jalankan Server Development
-npm run dev
-
-Server akan berjalan secara otomatis di: http://localhost:5000 🚀
-
-## 📑 Dokumentasi API (Endpoints Reference)
-
-### 🔐 1. Autentikasi (`/auth`)
-| Method | Endpoint | Akses | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/auth/register` | Publik | Mendaftarkan akun mahasiswa/civitas baru |
-| `POST` | `/auth/login` | Publik | Autentikasi email & password untuk mendapatkan Token JWT |
-
-### 👤 2. Pengguna (`/users`)
-| Method | Endpoint | Akses | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/users/me` | Authenticated | Mengambil profil data diri pengguna yang sedang login |
-
-### 🏢 3. Fasilitas Campus (`/facilities`)
-| Method | Endpoint | Akses | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/facilities` | Authenticated | Mengambil daftar seluruh gedung/fasilitas kampus |
-| `POST` | `/facilities` | Admin / SARPRAS | Menambahkan fasilitas kampus baru |
-
-### 📋 4. Pelaporan Kerusakan (`/reports`)
-| Method | Endpoint | Akses | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/reports` | Authenticated | Membuat dan mengirimkan laporan kerusakan baru |
-| `GET` | `/reports/my-reports` | Authenticated | Mengambil daftar riwayat laporan milik pengguna sendiri |
-
-### 📊 5. Panel Admin & Dashboard Stats (`/admin`)
-| Method | Endpoint | Akses | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/admin/reports` | Admin / SARPRAS | Mengambil seluruh daftar laporan masuk di sistem |
-| `PATCH` | `/admin/reports/:id/status` | Admin / SARPRAS | Memperbarui status laporan (`PENDING`, `DIPROSES`, `SELESAI`, `DITOLAK`) |
-| `GET` | `/admin/stats` | Admin / SARPRAS | Mengambil ringkasan statistik & data tren harian untuk grafik Figma |
-
-### 🔔 6. Notifikasi (`/notifications`)
-| Method | Endpoint | Akses | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/notifications` | Authenticated | Mengambil daftar riwayat notifikasi status laporan pengguna |
-| `PATCH` | `/notifications/:id/read` | Authenticated | Menandai notifikasi spesifik telah dibaca |
-
----
-
-## 💡 Status Use Case Implemented
-
-- [x] **UC-01**: Registrasi Akun Pengguna
-- [x] **UC-02**: Login & Generasi JWT Token
-- [x] **UC-04**: Buat Laporan Kerusakan Facilities
-- [x] **UC-05**: Melihat Riwayat Laporan Kerusakan
-- [x] **UC-06**: Memantau Dashboard & Visualisasi Grafik Admin
-- [x] **UC-07**: Memperbarui Status Laporan & Trigger Notifikasi
-- [x] **UC-08**: Logout Session Handling (Client-side token deletion)
-- [x] **UC-09**: Notification Center System
+<h3>5. Jalankan Server Development</h3>
+<pre><code>npm run dev</code></pre>
+<p>Server akan berjalan secara otomatis di: <code>http://localhost:5000</code> 🚀</p>
