@@ -1,23 +1,10 @@
-<div align="center">
-
 # 🏛️ CARES Backend API
 
 **Campus Facility Damage Reporting System — Server Side Engine**
 
- REST API backend modern, cepat, dan terstruktur untuk mengelola sistem pelaporan kerusakan fasilitas kampus secara *real-time*.
+REST API backend modern, cepat, dan terstruktur untuk mengelola sistem pelaporan kerusakan fasilitas kampus secara real-time.
 
 ---
-
-![Node.js](https://img.shields.io/badge/Node.js-v18+-green?style=flat-square&logo=node.js)
-![Express.js](https://img.shields.io/badge/Express.js-v4.x-black?style=flat-square&logo=express)
-![TypeScript](https://img.shields.io/badge/TypeScript-v5.x-blue?style=flat-square&logo=typescript)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-512BD4?style=flat-square&logo=prisma)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat-square&logo=postgresql)
-![JWT](https://img.shields.io/badge/JWT-Authentication-black?style=flat-square&logo=jsonwebtokens)
-
-</div>
-
-<br />
 
 ## 📖 Deskripsi Singkat
 
@@ -25,7 +12,7 @@
 
 ---
 
-## 🛠️️ Arsitektur & Teknologi Backend
+## 🛠 Arsitektur & Teknologi Backend
 
 * **Runtime & Framework**: Node.js & Express.js (TypeScript)
 * **ORM & Database**: Prisma ORM dengan basis data PostgreSQL
@@ -53,31 +40,79 @@ backend/
 ├── package.json              # Metadata, skrip build, & dependensi
 ├── tsconfig.json             # Konfigurasi compiler TypeScript
 └── README.md                 # Dokumentasi utama proyek
+```
 
-<h2>🚀 Panduan Memulai (Quick Start)</h2>
+---
 
-<h3>1. Prasyarat Sistem</h3>
-<ul>
-  <li><strong>Node.js</strong> (v18.x atau versi lebih baru)</li>
-  <li><strong>PostgreSQL Database</strong> (Lokal / Cloud)</li>
-  <li><strong>Package Manager</strong> (<code>npm</code>, <code>yarn</code>, atau <code>pnpm</code>)</li>
-</ul>
+## 🚀 Panduan Memulai (Quick Start)
 
-<h3>2. Konfigurasi Environment Variable</h3>
-<p>Salin file <code>.env.example</code> menjadi <code>.env</code> di direktori utama backend:</p>
-<pre><code>PORT=5000
+### 1. Prasyarat Sistem
+* **Node.js** (v18.x atau versi lebih baru)
+* **PostgreSQL Database** (Lokal / Cloud)
+* **Package Manager** (`npm`, `yarn`, atau `pnpm`)
+
+### 2. Konfigurasi Environment Variable
+Salin file `.env.example` menjadi `.env` di direktori utama backend:
+
+```env
+PORT=5000
 DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/cares_db?schema=public"
-JWT_SECRET="super_secret_jwt_key_cares_2026"</code></pre>
+JWT_SECRET="super_secret_jwt_key_cares_2026"
+```
 
-3. Instalasi Dependensi</h3>
-<p>Jalankan perintah berikut di terminal:</p>
-<pre><code>npm install</code></pre>
+### 3. Instalasi Dependensi
+Jalankan perintah berikut di terminal:
+```bash
+npm install
+```
 
-<h3>4. Setup Database & Prisma Migrations</h3>
-<p>Generate Prisma Client dan jalankan migrasi tabel ke PostgreSQL:</p>
-<pre><code>npx prisma migrate dev --name init
-npx prisma generate</code></pre>
+### 4. Setup Database & Prisma Migrations
+Generate Prisma Client dan jalankan migrasi tabel ke PostgreSQL:
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+```
 
-<h3>5. Jalankan Server Development</h3>
-<pre><code>npm run dev</code></pre>
-<p>Server akan berjalan secara otomatis di: <code>http://localhost:5000</code> 🚀</p>
+### 5. Jalankan Server Development
+```bash
+npm run dev
+```
+Server akan berjalan secara otomatis di: `http://localhost:5000` 🚀
+
+---
+
+## 📑 Dokumentasi API (Endpoints Reference)
+
+| Kategori | Method | Endpoint | Akses | Deskripsi |
+| :--- | :--- | :--- | :--- | :--- |
+| **Autentikasi** | `POST` | `/auth/register` | Publik | Mendaftarkan akun mahasiswa/civitas baru |
+| | `POST` | `/auth/login` | Publik | Autentikasi email & password untuk mendapatkan Token JWT |
+| **Pengguna** | `GET` | `/users/me` | Authenticated | Mengambil profil data diri pengguna yang sedang login |
+| **Fasilitas** | `GET` | `/facilities` | Authenticated | Mengambil daftar seluruh gedung/fasilitas kampus |
+| | `POST` | `/facilities` | Admin / SARPRAS | Menambahkan fasilitas kampus baru |
+| **Pelaporan** | `POST` | `/reports` | Authenticated | Membuat dan mengirimkan laporan kerusakan baru |
+| | `GET` | `/reports/my-reports` | Authenticated | Mengambil daftar riwayat laporan milik pengguna sendiri |
+| **Panel Admin**| `GET` | `/admin/reports` | Admin / SARPRAS | Mengambil seluruh daftar laporan masuk di sistem |
+| | `PATCH` | `/admin/reports/:id/status` | Admin / SARPRAS | Memperbarui status laporan (`PENDING`, `DIPROSES`, `SELESAI`, `DITOLAK`) |
+| | `GET` | `/admin/stats` | Admin / SARPRAS | Mengambil ringkasan statistik & data tren harian untuk grafik Figma |
+| **Notifikasi** | `GET` | `/notifications` | Authenticated | Mengambil daftar riwayat notifikasi status laporan pengguna |
+| | `PATCH` | `/notifications/:id/read` | Authenticated | Menandai notifikasi spesifik telah dibaca |
+
+---
+
+## 💡 Status Use Case Implemented
+
+| Kode Use Case | Nama Use Case | Status |
+| :--- | :--- | :---: |
+| **UC-01** | Registrasi Akun Pengguna | `SELESAI` |
+| **UC-02** | Login & Generasi JWT Token | `SELESAI` |
+| **UC-04** | Buat Laporan Kerusakan Facilities | `SELESAI` |
+| **UC-05** | Melihat Riwayat Laporan Kerusakan | `SELESAI` |
+| **UC-06** | Memantau Dashboard & Visualisasi Grafik Admin | `SELESAI` |
+| **UC-07** | Memperbarui Status Laporan & Trigger Notifikasi | `SELESAI` |
+| **UC-08** | Logout Session Handling (Client-side token deletion) | `SELESAI` |
+| **UC-09** | Notification Center System | `SELESAI` |
+
+---
+
+Developed for **CARES Campus Facility System** © 2026

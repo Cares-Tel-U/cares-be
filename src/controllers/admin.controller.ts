@@ -22,6 +22,7 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
             role: true,
           },
         },
+        photos: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -39,19 +40,18 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
 export const updateReportStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, refectionReason } = req.body;
+    const { status, rejectionReason } = req.body; // Sudah disesuaikan ke rejectionReason
 
     if (!id) {
       return res.status(400).json({ message: 'ID laporan wajib diisi.' });
     }
 
-    // Sesuai enum Prisma: PENDING, DIPROSES, SELESAI, DITOLAK
     const validStatuses = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Status laporan tidak valid.' });
     }
 
-    if (status === 'DITOLAK' && !refectionReason) {
+    if (status === 'DITOLAK' && !rejectionReason) {
       return res.status(400).json({
         message: 'Alasan penolakan wajib diisi jika laporan ditolak.',
       });
@@ -61,11 +61,11 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
       where: { id },
       data: {
         status,
-        ...(refectionReason && { refectionReason }),
+        ...(rejectionReason && { rejectionReason }),
       },
     });
 
-    // Pemicu Notifikasi Otomatis ke Pengguna (Use Case No. 9)
+    // Trigger Notifikasi Otomatis ke Pengguna
     const pesanNotif = `Status laporan Anda (#${updatedReport.id.substring(0, 8)}) telah diperbarui menjadi ${status}.`;
     await createNotification(updatedReport.userId, updatedReport.id, pesanNotif);
 
@@ -78,7 +78,7 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 3. Get Dashboard Stats & Chart Data (Grafik Tren Figma)
+// 3. Get Dashboard Stats & Chart Data
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
     const { timeframe } = req.query;
@@ -101,16 +101,16 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Agregasi statistik tren harian untuk Line Chart Figma
-    const trendMap: { [key: string]: number } = {};
+    const trendMap: Record<string, number> = {};
     reports.forEach((report) => {
       const dateKey = report.createdAt.toISOString().slice(0, 10);
-      trendMap[dateKey] = (trendMap[dateKey] || 0) + 1;
+      const currentCount = trendMap[dateKey] ?? 0;
+      trendMap[dateKey] = currentCount + 1;
     });
 
     const chartData = Object.keys(trendMap).map((date) => ({
       date,
-      count: trendMap[date],
+      count: trendMap[date] ?? 0,
     }));
 
     return res.status(200).json({

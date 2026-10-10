@@ -4,58 +4,48 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 
 const prisma = new PrismaClient();
 
-// 1. Buat Laporan Kerusakan Baru (POST /reports)
+// 1. Buat Laporan Kerusakan Baru (UC-04)
 export const createReport = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId ?? req.user?.id;
-    const { facilityId, judul, deskripsi, isAnonymous } = req.body;
+    const userId = req.user?.userId || req.user?.id;
+    const { judul, deskripsi, facilityId, isAnonymous } = req.body;
 
     if (!userId) {
       return res.status(401).json({ message: 'User ID tidak ditemukan.' });
     }
 
-    if (isAnonymous) {
-      return res.status(400).json({ message: 'Laporan anonim belum didukung.' });
-    }
-
-    // Cek apakah ada laporan aktif yang belum selesai di fasilitas yang sama
-    const activeReport = await prisma.report.findFirst({
-      where: {
-        facilityId,
-        status: { in: ['PENDING', 'DIPROSES'] },
-      },
-    });
-
-    if (activeReport) {
+    if (!judul || !deskripsi || !facilityId) {
       return res.status(400).json({
-        message: 'Sudah ada laporan aktif untuk fasilitas ini yang sedang diproses.',
+        message: 'Judul, deskripsi, dan fasilitas wajib diisi.',
       });
     }
 
-    // Simpan laporan baru
-    const newReport = await prisma.report.create({
+    const report = await prisma.report.create({
       data: {
-        facilityId,
         judul,
-        userId,
         deskripsi,
-        status: 'PENDING',
+        facilityId,
+        userId,
+        isAnonymous: Boolean(isAnonymous), // Menerima toggle anonim dari FE
+      },
+      include: {
+        facility: true,
       },
     });
 
     return res.status(201).json({
-      message: 'Laporan kerusakan berhasil dibuat',
-      data: newReport,
+      message: 'Laporan berhasil dibuat',
+      data: report,
     });
   } catch (error) {
     return res.status(500).json({ message: 'Gagal membuat laporan', error });
   }
 };
 
-// 2. Ambil Riwayat Laporan User (GET /reports/my-reports)
+// 2. Ambil Riwayat Laporan Milik User Sendiri (UC-05)
 export const getMyReports = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId ?? req.user?.id;
+    const userId = req.user?.userId || req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ message: 'User ID tidak ditemukan.' });
@@ -65,15 +55,16 @@ export const getMyReports = async (req: AuthRequest, res: Response) => {
       where: { userId },
       include: {
         facility: true,
+        photos: true,
       },
       orderBy: { createdAt: 'desc' },
     });
 
     return res.status(200).json({
-      message: 'Berhasil mengambil riwayat laporan',
+      message: 'Berhasil mengambil riwayat laporan Anda',
       data: reports,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal mengambil riwayat laporan', error });
+    return res.status(500).json({ message: 'Gagal mengambil laporan', error });
   }
 };
