@@ -27,9 +27,21 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
       orderBy: { createdAt: 'desc' },
     });
 
+    const sanitizedReports = reports.map((report) => ({
+      ...report,
+      user: report.isAnonymous
+        ? {
+            id: 'ANONYMOUS',
+            nama: 'Anonim',
+            email: 'anonim@telkomuniversity.ac.id',
+            role: report.user.role,
+          }
+        : report.user,
+    }));
+
     return res.status(200).json({
       message: 'Berhasil mengambil seluruh data laporan',
-      data: reports,
+      data: sanitizedReports,
     });
   } catch (error) {
     return res.status(500).json({ message: 'Gagal mengambil data laporan', error });

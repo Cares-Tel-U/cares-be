@@ -7,10 +7,16 @@ import reportRoutes from './routes/report.routes';
 import adminRoutes from './routes/admin.routes';
 import notificationRoutes from './routes/notification.routes'; // Import notification routes
 
+import path from 'path';
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Sajikan file statis hasil upload foto bukti laporan
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Endpoint Tes Server
 app.get('/', (req, res) => {
