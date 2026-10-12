@@ -13,7 +13,10 @@ export const register = async (req: Request, res: Response) => {
     // Cek apakah email sudah terdaftar
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email sudah terdaftar.' });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Email sudah terdaftar.',
+      });
     }
 
     // Hash password sebelum disimpan
@@ -38,11 +41,16 @@ export const register = async (req: Request, res: Response) => {
     });
 
     return res.status(201).json({
+      status: 'success',
       message: 'Registrasi berhasil',
       data: newUser,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal melakukan registrasi.', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal melakukan registrasi.',
+      error,
+    });
   }
 };
 
@@ -54,19 +62,26 @@ export const login = async (req: Request, res: Response) => {
     // Cek keberadaan user
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(401).json({ message: 'Email atau password salah.' });
+      return res.status(401).json({
+        status: 'error',
+        message: 'Email atau password salah.',
+      });
     }
 
     // Verifikasi password
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Email atau password salah.' });
+      return res.status(401).json({
+        status: 'error',
+        message: 'Email atau password salah.',
+      });
     }
 
     // Generate JWT Token
     const token = generateToken({ id: user.id, role: user.role });
 
     return res.status(200).json({
+      status: 'success',
       message: 'Login berhasil',
       data: {
         token,
@@ -79,7 +94,11 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal melakukan login.', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal melakukan login.',
+      error,
+    });
   }
 };
 
@@ -89,7 +108,10 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.userId ?? req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: 'User ID tidak ditemukan.' });
+      return res.status(401).json({
+        status: 'error',
+        message: 'User ID tidak ditemukan.',
+      });
     }
 
     const user = await prisma.user.findUnique({
@@ -105,14 +127,22 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User tidak ditemukan.' });
+      return res.status(404).json({
+        status: 'error',
+        message: 'User tidak ditemukan.',
+      });
     }
 
     return res.status(200).json({
+      status: 'success',
       message: 'Berhasil mengambil profil user',
       data: user,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal mengambil data profil.', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil data profil.',
+      error,
+    });
   }
 };

@@ -1,118 +1,104 @@
-# 🏛️ CARES Backend API
+# CARES Backend API
 
-**Campus Facility Damage Reporting System — Server Side Engine**
+Campus Facility Damage Reporting System — Server Side Engine
 
 REST API backend modern, cepat, dan terstruktur untuk mengelola sistem pelaporan kerusakan fasilitas kampus secara real-time.
 
 ---
 
-## 📖 Deskripsi Singkat
+## Deskripsi Singkat
 
-**CARES Backend** merupakan layanan web/API yang memproses seluruh operasi logika bisnis sistem pelaporan fasilitas kampus. Layanan ini mencakup pengelolaan autentikasi pengguna berbasis JWT, manajemen CRUD fasilitas & laporan, dashboard analitik berbasis statistik mingguan/bulanan untuk pihak SARPRAS, hingga pemicu notifikasi otomatis saat status laporan diperbarui.
-
----
-
-## 🛠 Arsitektur & Teknologi Backend
-
-* **Runtime & Framework**: Node.js & Express.js (TypeScript)
-* **ORM & Database**: Prisma ORM dengan basis data PostgreSQL
-* **Autentikasi & Keamanan**: JWT (*JSON Web Token*) Stateless & CORS
-* **Development Tools**: `tsx` / `ts-node-dev` untuk auto-reload cepat
+CARES Backend merupakan layanan web/API yang memproses seluruh operasi logika bisnis sistem pelaporan fasilitas kampus. Layanan ini mencakup pengelolaan autentikasi pengguna berbasis JWT, manajemen CRUD fasilitas dan laporan, dashboard analitik berbasis statistik untuk pihak SARPRAS, hingga pemicu notifikasi otomatis saat status laporan diperbarui.
 
 ---
 
-## 📁 Struktur Proyek
+## Dokumentasi API Interaktif & Testing Tools
 
-```text
-backend/
-├── prisma/
-│   └── schema.prisma         # Skema tabel database & enum Prisma ORM
-├── postman/
-│   └── collections/          # Koleksi API Postman untuk testing
-├── src/
-│   ├── controllers/          # Logika bisnis endpoint (Auth, User, Facility, Report, Admin, Notification)
-│   ├── middlewares/          # Middleware JWT Verification & Role Authorization (Admin/Sarpras)
-│   ├── routes/               # Pemetaan rute Express API
-│   ├── utils/                # Utility helpers (Notification trigger & Auth helpers)
-│   ├── app.ts                # Express app entry & route registration
-│   └── server.ts             # HTTP Server initializer
-├── .env.example              # Template variabel lingkungan
-├── package.json              # Metadata, skrip build, & dependensi
-├── tsconfig.json             # Konfigurasi compiler TypeScript
-└── README.md                 # Dokumentasi utama proyek
-```
+### 1. Swagger UI (OpenAPI 3.0)
+Dokumentasi interaktif dapat diakses langsung melalui peramban web saat server berjalan:
+* URL: `http://localhost:5001/api-docs` atau `http://localhost:5001/docs`
+* Fitur: Try-it-out langsung, skema request/response, dan otentikasi Bearer JWT.
+
+### 2. Postman Collection & Environment
+Berkas koleksi Postman lengkap dengan contoh dummy payload siap uji telah disediakan di direktori `postman/`:
+* Koleksi: `postman/CARES_API_v1.postman_collection.json`
+* Environment: `postman/CARES_Local.postman_environment.json`
 
 ---
 
-## 🚀 Panduan Memulai (Quick Start)
+## Data Dummy Siap Uji (Pre-Seeded Accounts)
+
+Database telah dilengkapi dengan data dummy lengkap sehingga pengujian dapat dilakukan langsung tanpa membuat data baru:
+
+| Peran | Nama Akun | Email | Kata Sandi | Keterangan |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mahasiswa** | Amba Ngawi | `ambangawi@telkomuniversity.ac.id` | `password123` | Pelapor reguler (memiliki laporan & notifikasi) |
+| **Mahasiswa** | Bintang Ridwan Pribadi | `bintang@telkomuniversity.ac.id` | `password123` | Pelapor reguler |
+| **Admin Sarpras** | Admin Sarpras Tel-U | `admin@telkomuniversity.ac.id` | `admin123` | Hak akses penuh verifikasi laporan |
+| **Admin Sarpras** | Petugas Sarpras Lapangan | `sarpras@telkomuniversity.ac.id` | `sarpras123` | Hak akses teknisi lapangan |
+
+---
+
+## Arsitektur & Teknologi Backend
+
+* Runtime & Framework: Node.js & Express.js (TypeScript)
+* ORM & Database: Prisma ORM dengan basis data PostgreSQL
+* Autentikasi: JWT (JSON Web Token) Stateless & Bcrypt Hashing
+* Dokumentasi: Swagger UI Express (OpenAPI 3.0)
+* Development Tools: tsx untuk auto-reload cepat
+
+---
+
+## Panduan Memulai (Quick Start)
 
 ### 1. Prasyarat Sistem
-* **Node.js** (v18.x atau versi lebih baru)
-* **PostgreSQL Database** (Lokal / Cloud)
-* **Package Manager** (`npm`, `yarn`, atau `pnpm`)
+* Node.js (v18.x atau versi lebih baru)
+* PostgreSQL Database (Lokal / Cloud port 3307 atau 5432)
+* Package Manager (npm)
 
 ### 2. Konfigurasi Environment Variable
-Salin file `.env.example` menjadi `.env` di direktori utama backend:
-
+Konfigurasikan file `.env` di direktori utama backend:
 ```env
-PORT=5000
-DATABASE_URL="postgresql://USERNAME:PASSWORD@localhost:5432/cares_db?schema=public"
+PORT=5001
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+DATABASE_URL="postgresql://postgres@localhost:3307/cares_db?schema=public"
 JWT_SECRET="super_secret_jwt_key_cares_2026"
 ```
 
-### 3. Instalasi Dependensi
-Jalankan perintah berikut di terminal:
+### 3. Instalasi Dependensi & Database Seed
 ```bash
 npm install
+npx prisma db push
+npx prisma db seed
 ```
 
-### 4. Setup Database & Prisma Migrations
-Generate Prisma Client dan jalankan migrasi tabel ke PostgreSQL:
-```bash
-npx prisma migrate dev --name init
-npx prisma generate
-```
-
-### 5. Jalankan Server Development
+### 4. Jalankan Server Development
 ```bash
 npm run dev
 ```
-Server akan berjalan secara otomatis di: `http://localhost:5000` 🚀
+Server berjalan di: `http://localhost:5001`
 
 ---
 
-## 📑 Dokumentasi API (Endpoints Reference)
+## Referensi Standar Endpoint RESTful API (v1)
 
-| Kategori | Method | Endpoint | Akses | Deskripsi |
+Semua endpoint mendukung awalan versi `/api/v1` serta backward-compatible tanpa prefix:
+
+| Kategori | Method | Endpoint Standard | Akses | Deskripsi |
 | :--- | :--- | :--- | :--- | :--- |
-| **Autentikasi** | `POST` | `/auth/register` | Publik | Mendaftarkan akun mahasiswa/civitas baru |
-| | `POST` | `/auth/login` | Publik | Autentikasi email & password untuk mendapatkan Token JWT |
-| **Pengguna** | `GET` | `/users/me` | Authenticated | Mengambil profil data diri pengguna yang sedang login |
-| **Fasilitas** | `GET` | `/facilities` | Authenticated | Mengambil daftar seluruh gedung/fasilitas kampus |
-| | `POST` | `/facilities` | Admin / SARPRAS | Menambahkan fasilitas kampus baru |
-| **Pelaporan** | `POST` | `/reports` | Authenticated | Membuat dan mengirimkan laporan kerusakan baru |
-| | `GET` | `/reports/my-reports` | Authenticated | Mengambil daftar riwayat laporan milik pengguna sendiri |
-| **Panel Admin**| `GET` | `/admin/reports` | Admin / SARPRAS | Mengambil seluruh daftar laporan masuk di sistem |
-| | `PATCH` | `/admin/reports/:id/status` | Admin / SARPRAS | Memperbarui status laporan (`PENDING`, `DIPROSES`, `SELESAI`, `DITOLAK`) |
-| | `GET` | `/admin/stats` | Admin / SARPRAS | Mengambil ringkasan statistik & data tren harian untuk grafik Figma |
-| **Notifikasi** | `GET` | `/notifications` | Authenticated | Mengambil daftar riwayat notifikasi status laporan pengguna |
-| | `PATCH` | `/notifications/:id/read` | Authenticated | Menandai notifikasi spesifik telah dibaca |
+| **Autentikasi** | `POST` | `/api/v1/auth/register` | Publik | Mendaftarkan akun mahasiswa/civitas baru |
+| | `POST` | `/api/v1/auth/login` | Publik | Autentikasi email dan password untuk mendapatkan Token JWT |
+| **Pengguna** | `GET` | `/api/v1/users/me` | Authenticated | Mengambil profil data diri pengguna yang sedang login |
+| **Fasilitas** | `GET` | `/api/v1/facilities` | Publik | Mengambil daftar seluruh gedung/fasilitas kampus |
+| **Pelaporan** | `POST` | `/api/v1/reports` | Authenticated | Membuat dan mengirimkan tiket laporan kerusakan baru |
+| | `GET` | `/api/v1/reports/my-reports` | Authenticated | Mengambil riwayat laporan milik pengguna sendiri (mendukung paginasi & filter status) |
+| **Panel Admin** | `GET` | `/api/v1/admin/reports` | Admin / SARPRAS | Mengambil seluruh daftar antrean laporan (mendukung paginasi & filter status) |
+| | `PATCH` | `/api/v1/admin/reports/:id/status` | Admin / SARPRAS | Memperbarui status laporan (`PENDING`, `DIPROSES`, `SELESAI`, `DITOLAK`) |
+| | `GET` | `/api/v1/admin/stats` | Admin / SARPRAS | Mengambil ringkasan statistik dan tren data kerusakan |
+| **Notifikasi** | `GET` | `/api/v1/notifications` | Authenticated | Mengambil daftar riwayat notifikasi status laporan pengguna |
+| | `PATCH` | `/api/v1/notifications/:id/read` | Authenticated | Menandai notifikasi spesifik telah dibaca |
 
 ---
 
-## 💡 Status Use Case Implemented
-
-| Kode Use Case | Nama Use Case | Status |
-| :--- | :--- | :---: |
-| **UC-01** | Registrasi Akun Pengguna | `SELESAI` |
-| **UC-02** | Login & Generasi JWT Token | `SELESAI` |
-| **UC-04** | Buat Laporan Kerusakan Facilities | `SELESAI` |
-| **UC-05** | Melihat Riwayat Laporan Kerusakan | `SELESAI` |
-| **UC-06** | Memantau Dashboard & Visualisasi Grafik Admin | `SELESAI` |
-| **UC-07** | Memperbarui Status Laporan & Trigger Notifikasi | `SELESAI` |
-| **UC-08** | Logout Session Handling (Client-side token deletion) | `SELESAI` |
-| **UC-09** | Notification Center System | `SELESAI` |
-
----
-
-Developed for **CARES Campus Facility System** © 2026
+Developed for CARES Campus Facility System 2026

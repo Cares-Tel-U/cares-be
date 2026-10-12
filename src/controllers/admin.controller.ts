@@ -8,10 +8,18 @@ const prisma = new PrismaClient();
 // 1. Get All Reports (Khusus Admin / SARPRAS)
 export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => {
   try {
-    const { status } = req.query;
+    const { status, page, per_page, limit } = req.query;
+
+    const whereClause: any = status ? { status: String(status) as any } : {};
+
+    const isPaginated = page !== undefined || per_page !== undefined || limit !== undefined;
+    const pageNum = Math.max(1, parseInt(String(page || 1), 10));
+    const limitNum = Math.max(1, parseInt(String(per_page || limit || 10), 10));
+
+    const total = await prisma.report.count({ where: whereClause });
 
     const reports = await prisma.report.findMany({
-      where: status ? { status: String(status) as any } : {},
+      where: whereClause,
       include: {
         facility: true,
         user: {
@@ -25,6 +33,10 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
         photos: true,
       },
       orderBy: { createdAt: 'desc' },
+      ...(isPaginated && {
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+      }),
     });
 
     const sanitizedReports = reports.map((report) => ({
@@ -39,12 +51,28 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
         : report.user,
     }));
 
-    return res.status(200).json({
+    const responsePayload: any = {
+      status: 'success',
       message: 'Berhasil mengambil seluruh data laporan',
       data: sanitizedReports,
-    });
+    };
+
+    if (isPaginated) {
+      responsePayload.meta = {
+        page: pageNum,
+        per_page: limitNum,
+        total,
+        total_pages: Math.ceil(total / limitNum) || 1,
+      };
+    }
+
+    return res.status(200).json(responsePayload);
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal mengambil data laporan', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil data laporan',
+      error,
+    });
   }
 };
 
@@ -52,19 +80,26 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
 export const updateReportStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, rejectionReason } = req.body; // Sudah disesuaikan ke rejectionReason
+    const { status, rejectionReason } = req.body;
 
     if (!id) {
-      return res.status(400).json({ message: 'ID laporan wajib diisi.' });
+      return res.status(400).json({
+        status: 'error',
+        message: 'ID laporan wajib diisi.',
+      });
     }
 
     const validStatuses = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: 'Status laporan tidak valid.' });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Status laporan tidak valid.',
+      });
     }
 
     if (status === 'DITOLAK' && !rejectionReason) {
       return res.status(400).json({
+        status: 'error',
         message: 'Alasan penolakan wajib diisi jika laporan ditolak.',
       });
     }
@@ -82,11 +117,16 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
     await createNotification(updatedReport.userId, updatedReport.id, pesanNotif);
 
     return res.status(200).json({
+      status: 'success',
       message: `Status laporan berhasil diperbarui menjadi ${status}`,
       data: updatedReport,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal memperbarui status laporan', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal memperbarui status laporan',
+      error,
+    });
   }
 };
 
@@ -126,6 +166,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     }));
 
     return res.status(200).json({
+      status: 'success',
       message: 'Berhasil mengambil data statistik dashboard',
       data: {
         summary: {
@@ -139,6 +180,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal mengambil statistik dashboard', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil statistik dashboard',
+      error,
+    });
   }
 };

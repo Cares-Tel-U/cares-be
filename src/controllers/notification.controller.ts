@@ -10,7 +10,10 @@ export const getUserNotifications = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.userId || req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: 'User ID tidak ditemukan.' });
+      return res.status(401).json({
+        status: 'error',
+        message: 'User ID tidak ditemukan.',
+      });
     }
 
     const notifications = await prisma.notification.findMany({
@@ -19,11 +22,16 @@ export const getUserNotifications = async (req: AuthRequest, res: Response) => {
     });
 
     return res.status(200).json({
+      status: 'success',
       message: 'Berhasil mengambil daftar notifikasi',
       data: notifications,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal mengambil notifikasi', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil notifikasi',
+      error,
+    });
   }
 };
 
@@ -33,7 +41,10 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ message: 'ID notifikasi wajib diisi.' });
+      return res.status(400).json({
+        status: 'error',
+        message: 'ID notifikasi wajib diisi.',
+      });
     }
 
     const notification = await prisma.notification.update({
@@ -42,10 +53,15 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     });
 
     return res.status(200).json({
+      status: 'success',
       message: 'Notifikasi berhasil ditandai telah dibaca',
       data: notification,
     });
   } catch (error) {
-    return res.status(500).json({ message: 'Gagal memperbarui notifikasi', error });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal memperbarui notifikasi',
+      error,
+    });
   }
 };

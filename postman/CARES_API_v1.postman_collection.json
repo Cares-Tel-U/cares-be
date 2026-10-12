@@ -1,0 +1,428 @@
+{
+  "info": {
+    "_postman_id": "c1010000-0000-0000-0000-cares0000001",
+    "name": "CARES - RESTful API Collection v1.0",
+    "description": "Koleksi resmi Postman untuk pengujian endpoint RESTful API CARES (Sistem Pelaporan Kerusakan Fasilitas Kampus Telkom University).\n\nDilengkapi dengan data dummy siap pakai untuk setiap endpoint sehingga pengetesan dapat langsung dijalankan tanpa perlu mengetik data secara manual.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Akun Mahasiswa Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Mahasiswa Tester Dummy\",\n  \"email\": \"mhs.tester@telkomuniversity.ac.id\",\n  \"password\": \"password123\",\n  \"role\": \"MAHASISWA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Mendaftarkan akun civitas akademika baru ke dalam sistem."
+          }
+        },
+        {
+          "name": "Register Akun Petugas Sarpras Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Sarpras Tester Dummy\",\n  \"email\": \"sarpras.tester@telkomuniversity.ac.id\",\n  \"password\": \"admin123\",\n  \"role\": \"SARPRAS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Mendaftarkan akun admin/petugas sarpras baru."
+          }
+        },
+        {
+          "name": "Login Mahasiswa (Simpan Token Otomatis)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.token) {",
+                  "    pm.environment.set('tokenMahasiswa', res.data.token);",
+                  "    pm.environment.set('authToken', res.data.token);",
+                  "    console.log('Token Mahasiswa berhasil disimpan ke environment.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ambangawi@telkomuniversity.ac.id\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login sebagai Mahasiswa (Amba Ngawi). Token JWT otomatis tersimpan ke variabel environment {{tokenMahasiswa}} dan {{authToken}}."
+          }
+        },
+        {
+          "name": "Login Admin / Sarpras (Simpan Token Otomatis)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.token) {",
+                  "    pm.environment.set('tokenAdmin', res.data.token);",
+                  "    pm.environment.set('authToken', res.data.token);",
+                  "    console.log('Token Admin berhasil disimpan ke environment.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@telkomuniversity.ac.id\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login sebagai Admin Sarpras. Token JWT otomatis tersimpan ke variabel environment {{tokenAdmin}}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Users",
+      "item": [
+        {
+          "name": "Get Current User Profile (/users/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Mengambil data profil pengguna yang sedang login berdasarkan Bearer token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Facilities",
+      "item": [
+        {
+          "name": "Get All Facilities Master Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.length > 0) {",
+                  "    pm.environment.set('facilityId', res.data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/facilities",
+              "host": ["{{baseUrl}}"],
+              "path": ["facilities"]
+            },
+            "description": "Mengambil seluruh master data fasilitas kampus (Gedung, Ruangan, Toilet, Lab, Parkiran) untuk formulir pelaporan."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Reports (Pelapor)",
+      "item": [
+        {
+          "name": "Buat Laporan Kerusakan Baru (JSON Dummy)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.environment.set('reportId', res.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenMahasiswa}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"Kran Wastafel Toilet Patah dan Bocor Deras\",\n  \"deskripsi\": \"Air mengalir deras dari pipa wastafel lantai 1 dan membasahi lantai toilet sehingga licin.\",\n  \"facilityId\": \"{{facilityId}}\",\n  \"isAnonymous\": false,\n  \"photos\": [\n    \"/uploads/kran_bocor_dummy.jpg\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports"]
+            },
+            "description": "Membuat tiket laporan kerusakan baru dengan data JSON dan foto URL dummy."
+          }
+        },
+        {
+          "name": "Buat Laporan Kerusakan Mode Anonim",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenMahasiswa}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"Lampu Koridor Gedung Redup dan Berkedip\",\n  \"deskripsi\": \"Lampu di lorong depan lift berkedip terus menerus mengganggu kenyamanan.\",\n  \"facilityId\": \"{{facilityId}}\",\n  \"isAnonymous\": true,\n  \"photos\": [\n    \"/uploads/lampu_kedip_dummy.jpg\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports"]
+            },
+            "description": "Membuat tiket laporan dengan mode anonim (isAnonymous: true)."
+          }
+        },
+        {
+          "name": "Get My Reports (Riwayat Laporan Saya - Paginasi)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenMahasiswa}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/my-reports?page=1&per_page=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "my-reports"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "10" }
+              ]
+            },
+            "description": "Mengambil seluruh riwayat laporan milik mahasiswa yang sedang login."
+          }
+        },
+        {
+          "name": "Get My Reports (Filter Status PENDING)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenMahasiswa}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/my-reports?status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "my-reports"],
+              "query": [
+                { "key": "status", "value": "PENDING" }
+              ]
+            },
+            "description": "Mengambil riwayat laporan dengan filter status PENDING."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Admin (Sarpras)",
+      "item": [
+        {
+          "name": "Get All Reports (Admin Queue & Paginasi)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports?page=1&per_page=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "reports"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "10" }
+              ]
+            },
+            "description": "Mengambil seluruh daftar antrean laporan fasilitas di kampus (khusus role SARPRAS)."
+          }
+        },
+        {
+          "name": "Verifikasi Laporan -> Ubah Status ke DIPROSES",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DIPROSES\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports/{{reportId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "reports", "{{reportId}}", "status"]
+            },
+            "description": "Verifikasi laporan oleh Sarpras dan mengubah status menjadi DIPROSES."
+          }
+        },
+        {
+          "name": "Selesaikan Laporan -> Ubah Status ke SELESAI",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SELESAI\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports/{{reportId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "reports", "{{reportId}}", "status"]
+            },
+            "description": "Menyelesaikan penanganan fasilitas dan memperbarui status menjadi SELESAI."
+          }
+        },
+        {
+          "name": "Tolak Laporan -> Ubah Status ke DITOLAK (Sertakan Alasan)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DITOLAK\",\n  \"rejectionReason\": \"Laporan duplikat dengan tiket penanganan teknisi sarpras yang sedang berjalan.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports/{{reportId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "reports", "{{reportId}}", "status"]
+            },
+            "description": "Menolak laporan dengan menyertakan alasan penolakan wajib (rejectionReason)."
+          }
+        },
+        {
+          "name": "Get Dashboard Analytics Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats?timeframe=weekly",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "stats"],
+              "query": [
+                { "key": "timeframe", "value": "weekly" }
+              ]
+            },
+            "description": "Mengambil analitik statistik kerusakan untuk grafik dashboard admin."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.length > 0) {",
+                  "    pm.environment.set('notificationId', res.data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            },
+            "description": "Mengambil seluruh riwayat notifikasi akun yang sedang login."
+          }
+        },
+        {
+          "name": "Mark Notification As Read (/notifications/:id/read)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            },
+            "description": "Menandai notifikasi telah dibaca oleh pengguna (isRead: true)."
+          }
+        }
+      ]
+    }
+  ]
+}
