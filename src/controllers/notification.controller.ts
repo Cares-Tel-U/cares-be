@@ -38,6 +38,7 @@ export const getUserNotifications = async (req: AuthRequest, res: Response) => {
 // 2. Tandai Notifikasi Telah Dibaca (Use Case No. 9)
 export const markAsRead = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user?.userId || req.user?.id;
     const { id } = req.params;
 
     if (!id) {
@@ -47,8 +48,19 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const existingNotif = await prisma.notification.findUnique({
+      where: { id: String(id) },
+    });
+
+    if (!existingNotif || (userId && existingNotif.userId !== userId)) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Notifikasi tidak ditemukan.',
+      });
+    }
+
     const notification = await prisma.notification.update({
-      where: { id },
+      where: { id: String(id) },
       data: { isRead: true },
     });
 
@@ -61,6 +73,42 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       status: 'error',
       message: 'Gagal memperbarui notifikasi',
+      error,
+    });
+  }
+};
+
+// 3. Tandai Semua Notifikasi Telah Dibaca
+export const markAllAsRead = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId || req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User ID tidak ditemukan.',
+      });
+    }
+
+    const updateResult = await prisma.notification.updateMany({
+      where: {
+        userId,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Seluruh notifikasi berhasil ditandai telah dibaca',
+      data: {
+        updatedCount: updateResult.count,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal memperbarui seluruh notifikasi',
       error,
     });
   }

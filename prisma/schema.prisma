@@ -31,13 +31,17 @@ enum KategoriFasilitas {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  nama      String
-  role      Role     @default(MAHASISWA)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  password               String
+  nama                   String
+  avatar                 String?
+  notificationPreference Boolean   @default(true)
+  resetPasswordToken     String?
+  resetPasswordExpires   DateTime?
+  role                   Role      @default(MAHASISWA)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   reports       Report[]       @relation("UserReports")
   notifications Notification[]

@@ -104,8 +104,19 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const existingReport = await prisma.report.findUnique({
+      where: { id: String(id) },
+    });
+
+    if (!existingReport) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Laporan tidak ditemukan.',
+      });
+    }
+
     const updatedReport = await prisma.report.update({
-      where: { id },
+      where: { id: String(id) },
       data: {
         status,
         ...(rejectionReason && { rejectionReason }),
@@ -183,6 +194,73 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       status: 'error',
       message: 'Gagal mengambil statistik dashboard',
+      error,
+    });
+  }
+};
+
+// 4. Update Status Laporan Secara Massal / Bulk (TC26)
+export const updateReportsBulkStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { reportIds, status, rejectionReason } = req.body;
+
+    if (!Array.isArray(reportIds) || reportIds.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Daftar ID laporan (reportIds) wajib disertakan dalam bentuk array non-kosong.',
+      });
+    }
+
+    const validStatuses = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Status laporan tidak valid.',
+      });
+    }
+
+    if (status === 'DITOLAK' && !rejectionReason) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Alasan penolakan wajib diisi jika laporan ditolak secara massal.',
+      });
+    }
+
+    const validIds = reportIds.map(String);
+
+    const updateResult = await prisma.report.updateMany({
+      where: {
+        id: { in: validIds },
+      },
+      data: {
+        status,
+        ...(rejectionReason && { rejectionReason }),
+      },
+    });
+
+    // Kirim notifikasi otomatis ke masing-masing pelapor
+    const affectedReports = await prisma.report.findMany({
+      where: { id: { in: validIds } },
+      select: { id: true, userId: true },
+    });
+
+    for (const report of affectedReports) {
+      const pesanNotif = `Status laporan Anda (#${report.id.substring(0, 8)}) telah diperbarui menjadi ${status}.`;
+      await createNotification(report.userId, report.id, pesanNotif);
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      message: `Berhasil memperbarui ${updateResult.count} status laporan menjadi ${status}`,
+      data: {
+        count: updateResult.count,
+        status,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal memperbarui status laporan secara massal',
       error,
     });
   }

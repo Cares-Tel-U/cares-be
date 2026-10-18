@@ -3,7 +3,7 @@
   "info": {
     "title": "CARES RESTful API Documentation",
     "version": "1.0.0",
-    "description": "Dokumentasi resmi RESTful API untuk Sistem Pelaporan Kerusakan Fasilitas Kampus (CARES) - Telkom University. Dibuat oleh Kelompok GRID untuk memfasilitasi pelaporan fasilitas kampus secara terpadu, aman, dan efisien.",
+    "description": "Dokumentasi resmi dan lengkap RESTful API untuk Sistem Pelaporan Kerusakan Fasilitas Kampus (CARES) Telkom University. Seluruh endpoint mematuhi arsitektur REST modern dengan response envelope standar ({ status, message, data, meta }), autentikasi JWT Bearer token, RBAC (Role-Based Access Control), pembatasan laju permintaan (rate limiting), serta kepatuhan penuh terhadap spesifikasi SRS dan SDD.",
     "contact": {
       "name": "Kelompok GRID - ASE Laboratory",
       "email": "aseleb@telkomuniversity.ac.id"
@@ -32,94 +32,261 @@
       "StandardResponse": {
         "type": "object",
         "properties": {
-          "status": { "type": "string", "example": "success" },
-          "message": { "type": "string", "example": "Operasi berhasil" },
-          "data": { "type": "object" }
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Operasi berhasil"
+          },
+          "data": {
+            "type": "object"
+          }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "status": { "type": "string", "example": "error" },
-          "message": { "type": "string", "example": "Pesan deskripsi kesalahan" }
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "example": "Pesan deskripsi kesalahan"
+          }
         }
       },
       "RegisterRequest": {
         "type": "object",
-        "required": ["email", "password", "nama"],
+        "required": [
+          "email",
+          "password",
+          "nama"
+        ],
         "properties": {
-          "nama": { "type": "string", "example": "Bintang Ridwan Pribadi" },
-          "email": { "type": "string", "format": "email", "example": "bintang@telkomuniversity.ac.id" },
-          "password": { "type": "string", "format": "password", "example": "password123" },
-          "role": { "type": "string", "enum": ["MAHASISWA", "TENAGA_KEPENDIDIKAN", "DOSEN", "SARPRAS"], "default": "MAHASISWA", "example": "MAHASISWA" }
+          "nama": {
+            "type": "string",
+            "example": "Bintang Ridwan Pribadi"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "bintang@telkomuniversity.ac.id"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "password123"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "MAHASISWA",
+              "TENAGA_KEPENDIDIKAN",
+              "DOSEN",
+              "SARPRAS"
+            ],
+            "default": "MAHASISWA",
+            "example": "MAHASISWA"
+          }
         }
       },
       "LoginRequest": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
-          "email": { "type": "string", "format": "email", "example": "ambangawi@telkomuniversity.ac.id" },
-          "password": { "type": "string", "format": "password", "example": "password123" }
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ambangawi@telkomuniversity.ac.id"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "password123"
+          }
         }
       },
       "User": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid", "example": "c7a84e62-bf23-41a4-921d-91b585ea1501" },
-          "email": { "type": "string", "example": "ambangawi@telkomuniversity.ac.id" },
-          "nama": { "type": "string", "example": "Amba Ngawi" },
-          "role": { "type": "string", "example": "MAHASISWA" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "c7a84e62-bf23-41a4-921d-91b585ea1501"
+          },
+          "email": {
+            "type": "string",
+            "example": "ambangawi@telkomuniversity.ac.id"
+          },
+          "nama": {
+            "type": "string",
+            "example": "Amba Ngawi"
+          },
+          "role": {
+            "type": "string",
+            "example": "MAHASISWA"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true,
+            "example": "/uploads/avatars/bintang.png"
+          },
+          "notificationPreference": {
+            "type": "boolean",
+            "example": true
+          }
         }
       },
       "Facility": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid", "example": "d1a84e62-bf23-41a4-921d-91b585ea1502" },
-          "nama": { "type": "string", "example": "Lab Komputer 1" },
-          "lokasi": { "type": "string", "example": "Gedung A Lt. 2" },
-          "kategori": { "type": "string", "enum": ["KELAS", "LABORATORIUM", "TOILET", "PARKIRAN", "KANTIN", "LAINNYA"], "example": "LABORATORIUM" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "d1a84e62-bf23-41a4-921d-91b585ea1502"
+          },
+          "nama": {
+            "type": "string",
+            "example": "Lab Komputer 1"
+          },
+          "lokasi": {
+            "type": "string",
+            "example": "Gedung A Lt. 2"
+          },
+          "kategori": {
+            "type": "string",
+            "enum": [
+              "KELAS",
+              "LABORATORIUM",
+              "TOILET",
+              "PARKIRAN",
+              "KANTIN",
+              "LAINNYA"
+            ],
+            "example": "LABORATORIUM"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "CreateReportRequest": {
         "type": "object",
-        "required": ["judul", "deskripsi", "facilityId"],
+        "required": [
+          "judul",
+          "deskripsi",
+          "facilityId"
+        ],
         "properties": {
-          "judul": { "type": "string", "example": "AC Bocor dan Mengeluarkan Suara Bising" },
-          "deskripsi": { "type": "string", "example": "AC di ruangan Lab Komputer 1 lantai 2 meneteskan air ke meja komputer dan tidak dingin." },
-          "facilityId": { "type": "string", "format": "uuid", "example": "f1010000-0000-0000-0000-000000000001" },
-          "isAnonymous": { "type": "boolean", "default": false, "example": false },
+          "judul": {
+            "type": "string",
+            "example": "AC Bocor dan Mengeluarkan Suara Bising"
+          },
+          "deskripsi": {
+            "type": "string",
+            "example": "AC di ruangan Lab Komputer 1 lantai 2 meneteskan air ke meja komputer dan tidak dingin."
+          },
+          "facilityId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "f1010000-0000-0000-0000-000000000001"
+          },
+          "isAnonymous": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
           "photos": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Daftar URL foto atau dikirim melalui multipart/form-data field 'photos'",
-            "example": ["/uploads/kerusakan_ac.jpg"]
+            "example": [
+              "/uploads/kerusakan_ac.jpg"
+            ]
           }
         }
       },
       "Report": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid", "example": "r1010000-0000-0000-0000-000000000001" },
-          "judul": { "type": "string", "example": "AC Bocor dan Mengeluarkan Suara Bising" },
-          "deskripsi": { "type": "string", "example": "AC di ruangan Lab Komputer 1 meneteskan air." },
-          "status": { "type": "string", "enum": ["PENDING", "DIPROSES", "SELESAI", "DITOLAK"], "example": "PENDING" },
-          "catatan": { "type": "string", "nullable": true },
-          "rejectionReason": { "type": "string", "nullable": true, "example": "Laporan duplikat dengan tiket penanganan sarpras sebelumnya" },
-          "isAnonymous": { "type": "boolean", "example": false },
-          "userId": { "type": "string" },
-          "facilityId": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "facility": { "$ref": "#/components/schemas/Facility" },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "r1010000-0000-0000-0000-000000000001"
+          },
+          "judul": {
+            "type": "string",
+            "example": "AC Bocor dan Mengeluarkan Suara Bising"
+          },
+          "deskripsi": {
+            "type": "string",
+            "example": "AC di ruangan Lab Komputer 1 meneteskan air."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "DIPROSES",
+              "SELESAI",
+              "DITOLAK"
+            ],
+            "example": "PENDING"
+          },
+          "catatan": {
+            "type": "string",
+            "nullable": true
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Laporan duplikat dengan tiket penanganan sarpras sebelumnya"
+          },
+          "isAnonymous": {
+            "type": "boolean",
+            "example": false
+          },
+          "userId": {
+            "type": "string"
+          },
+          "facilityId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "facility": {
+            "$ref": "#/components/schemas/Facility"
+          },
           "photos": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "id": { "type": "string" },
-                "url": { "type": "string", "example": "/uploads/kerusakan_ac.jpg" }
+                "id": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "example": "/uploads/kerusakan_ac.jpg"
+                }
               }
             }
           }
@@ -127,21 +294,175 @@
       },
       "UpdateStatusRequest": {
         "type": "object",
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "properties": {
-          "status": { "type": "string", "enum": ["PENDING", "DIPROSES", "SELESAI", "DITOLAK"], "example": "DIPROSES" },
-          "rejectionReason": { "type": "string", "description": "Wajib diisi apabila status bernilai DITOLAK", "example": "Laporan fasilitas telah selesai ditangani oleh teknisi pagi ini." }
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "DIPROSES",
+              "SELESAI",
+              "DITOLAK"
+            ],
+            "example": "DIPROSES"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "description": "Wajib diisi apabila status bernilai DITOLAK",
+            "example": "Laporan fasilitas telah selesai ditangani oleh teknisi pagi ini."
+          }
         }
       },
       "Notification": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "pesan": { "type": "string", "example": "Status laporan Anda (#r1010000) telah diperbarui menjadi DIPROSES." },
-          "isRead": { "type": "boolean", "example": false },
-          "userId": { "type": "string" },
-          "reportId": { "type": "string", "nullable": true },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pesan": {
+            "type": "string",
+            "example": "Status laporan Anda (#r1010000) telah diperbarui menjadi DIPROSES."
+          },
+          "isRead": {
+            "type": "boolean",
+            "example": false
+          },
+          "userId": {
+            "type": "string"
+          },
+          "reportId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "bintang@telkomuniversity.ac.id"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": [
+          "token",
+          "newPassword"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "38616465376435612d343932342d346533622d613762302d306334636338626431343863"
+          },
+          "newPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "newPassword123"
+          }
+        }
+      },
+      "UpdateAvatarRequest": {
+        "type": "object",
+        "properties": {
+          "avatarUrl": {
+            "type": "string",
+            "example": "/uploads/avatars/bintang.png",
+            "description": "URL foto profil atau upload multipart/form-data field 'avatar'"
+          }
+        }
+      },
+      "UpdateNotificationPreferenceRequest": {
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "True untuk mengaktifkan notifikasi, False untuk menonaktifkan"
+          }
+        }
+      },
+      "CreateFacilityRequest": {
+        "type": "object",
+        "required": [
+          "nama",
+          "lokasi",
+          "kategori"
+        ],
+        "properties": {
+          "nama": {
+            "type": "string",
+            "example": "Lab Komputer Baru 102"
+          },
+          "lokasi": {
+            "type": "string",
+            "example": "Gedung TULT Lantai 3"
+          },
+          "kategori": {
+            "type": "string",
+            "enum": [
+              "KELAS",
+              "LABORATORIUM",
+              "TOILET",
+              "PARKIRAN",
+              "KANTIN",
+              "LAINNYA"
+            ],
+            "example": "LABORATORIUM"
+          }
+        }
+      },
+      "BulkStatusUpdateRequest": {
+        "type": "object",
+        "required": [
+          "reportIds",
+          "status"
+        ],
+        "properties": {
+          "reportIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "83f1e94b-4b2a-4dfa-9b1f-36104bc12345",
+              "92a1c84d-2a1e-4cba-8a1d-28504ca67890"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "DIPROSES",
+              "SELESAI",
+              "DITOLAK"
+            ],
+            "example": "DIPROSES"
+          },
+          "catatan": {
+            "type": "string",
+            "example": "Laporan diverifikasi serentak untuk pengerjaan teknisi."
+          },
+          "rejectionReason": {
+            "type": "string",
+            "example": "Laporan duplikat atau tidak memenuhi syarat."
+          }
         }
       }
     }
@@ -149,14 +470,18 @@
   "paths": {
     "/auth/register": {
       "post": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Registrasi Akun Civitas Akademika Baru",
         "description": "Mendaftarkan akun mahasiswa, dosen, tenaga kependidikan, atau sarpras baru dengan enkripsi password Bcrypt.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
             }
           }
         },
@@ -168,9 +493,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Registrasi berhasil" },
-                    "data": { "$ref": "#/components/schemas/User" }
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Registrasi berhasil"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
                   }
                 }
               }
@@ -180,7 +513,19 @@
             "description": "Email sudah terdaftar atau input tidak valid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -189,14 +534,18 @@
     },
     "/auth/login": {
       "post": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Autentikasi Login Pengguna & Admin",
         "description": "Melakukan verifikasi kredensial email & password dan menerbitkan JWT Bearer Token (berlaku 1 hari).",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
             }
           }
         },
@@ -208,13 +557,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Login berhasil" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login berhasil"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
-                        "user": { "$ref": "#/components/schemas/User" }
+                        "token": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        },
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
                       }
                     }
                   }
@@ -226,7 +586,19 @@
             "description": "Email atau password salah",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -235,10 +607,16 @@
     },
     "/users/me": {
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Mengambil Profil Pengguna Aktif",
         "description": "Mengambil rincian akun pengguna saat ini yang sedang terotentikasi berdasarkan JWT Bearer Token.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Profil berhasil dimuat",
@@ -247,9 +625,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Berhasil mengambil profil user" },
-                    "data": { "$ref": "#/components/schemas/User" }
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil profil user"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
                   }
                 }
               }
@@ -259,7 +645,19 @@
             "description": "Token tidak valid atau tidak disediakan",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -268,7 +666,9 @@
     },
     "/facilities": {
       "get": {
-        "tags": ["Facilities"],
+        "tags": [
+          "Facilities"
+        ],
         "summary": "Mengambil Daftar Seluruh Master Fasilitas Kampus",
         "description": "Mengambil daftar master data fasilitas kampus (gedung, ruangan, laboratorium, toilet, kantin, parkiran) untuk dikonsumsi form pelaporan.",
         "responses": {
@@ -279,13 +679,104 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Berhasil mengambil data fasilitas" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil data fasilitas"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Facility" }
+                      "items": {
+                        "$ref": "#/components/schemas/Facility"
+                      }
                     }
                   }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Facilities"
+        ],
+        "summary": "Menambahkan Master Fasilitas Baru (Sarpras / Admin)",
+        "description": "Menambahkan data master gedung/ruangan fasilitas kampus baru ke dalam sistem.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFacilityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fasilitas baru berhasil ditambahkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Fasilitas berhasil ditambahkan"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Facility"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Field input tidak lengkap atau kategori tidak valid"
+          },
+          "403": {
+            "description": "Akses ditolak (khusus Admin / Sarpras)"
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -295,28 +786,55 @@
     },
     "/reports": {
       "post": {
-        "tags": ["Reports (Pelapor)"],
+        "tags": [
+          "Reports (Pelapor)"
+        ],
         "summary": "Membuat Tiket Laporan Kerusakan Baru (UC-04)",
         "description": "Membuat laporan fasilitas kampus dengan foto bukti kerusakan dan mode anonim. Mendukung payload JSON atau multipart/form-data.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateReportRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportRequest"
+              }
             },
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": ["judul", "deskripsi", "facilityId"],
+                "required": [
+                  "judul",
+                  "deskripsi",
+                  "facilityId"
+                ],
                 "properties": {
-                  "judul": { "type": "string", "example": "Kran Wastafel Bocor" },
-                  "deskripsi": { "type": "string", "example": "Air terus mengalir deras dan tidak bisa ditutup." },
-                  "facilityId": { "type": "string", "example": "f1010000-0000-0000-0000-000000000003" },
-                  "isAnonymous": { "type": "boolean", "example": false },
+                  "judul": {
+                    "type": "string",
+                    "example": "Kran Wastafel Bocor"
+                  },
+                  "deskripsi": {
+                    "type": "string",
+                    "example": "Air terus mengalir deras dan tidak bisa ditutup."
+                  },
+                  "facilityId": {
+                    "type": "string",
+                    "example": "f1010000-0000-0000-0000-000000000003"
+                  },
+                  "isAnonymous": {
+                    "type": "boolean",
+                    "example": false
+                  },
                   "photos": {
                     "type": "array",
-                    "items": { "type": "string", "format": "binary" },
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
                     "description": "Unggah 1 sampai 3 berkas gambar bukti kerusakan (JPG/PNG/WEBP, maks 5MB per berkas)"
                   }
                 }
@@ -332,9 +850,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Laporan berhasil dibuat" },
-                    "data": { "$ref": "#/components/schemas/Report" }
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Laporan berhasil dibuat"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
                   }
                 }
               }
@@ -344,7 +870,9 @@
             "description": "Input tidak lengkap atau fasilitas sedang dalam penanganan aktif",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -352,7 +880,125 @@
             "description": "Autentikasi token dibutuhkan",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Mengambil Seluruh Laporan Publik Kampus (Feed Laporan)",
+        "description": "Mengambil daftar seluruh laporan kerusakan fasilitas kampus secara publik. Identitas pelapor disembunyikan otomatis jika berstatus anonim.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "DIPROSES",
+                "SELESAI",
+                "DITOLAK"
+              ]
+            },
+            "description": "Filter laporan berdasarkan status"
+          },
+          {
+            "name": "facilityId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filter laporan berdasarkan fasilitas tertentu"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Nomor halaman pagination"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Jumlah data per halaman"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar laporan publik berhasil dimuat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil daftar laporan publik"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Report"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -361,14 +1007,49 @@
     },
     "/reports/my-reports": {
       "get": {
-        "tags": ["Reports (Pelapor)"],
+        "tags": [
+          "Reports (Pelapor)"
+        ],
         "summary": "Mengambil Riwayat Laporan Milik Pelapor (UC-05)",
         "description": "Mengambil daftar laporan yang dibuat oleh akun pengguna yang sedang login beserta foto bukti dan status penanganan.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["PENDING", "DIPROSES", "SELESAI", "DITOLAK"] }, "description": "Filter status laporan" },
-          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 }, "description": "Halaman paginasi" },
-          { "name": "per_page", "in": "query", "schema": { "type": "integer", "default": 10 }, "description": "Jumlah data per halaman" }
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "DIPROSES",
+                "SELESAI",
+                "DITOLAK"
+              ]
+            },
+            "description": "Filter status laporan"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Halaman paginasi"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Jumlah data per halaman"
+          }
         ],
         "responses": {
           "200": {
@@ -378,22 +1059,62 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Berhasil mengambil riwayat laporan Anda" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil riwayat laporan Anda"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Report" }
+                      "items": {
+                        "$ref": "#/components/schemas/Report"
+                      }
                     },
                     "meta": {
                       "type": "object",
                       "properties": {
-                        "page": { "type": "integer", "example": 1 },
-                        "per_page": { "type": "integer", "example": 10 },
-                        "total": { "type": "integer", "example": 3 },
-                        "total_pages": { "type": "integer", "example": 1 }
+                        "page": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "example": 1
+                        }
                       }
                     }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -403,14 +1124,49 @@
     },
     "/admin/reports": {
       "get": {
-        "tags": ["Admin (Sarpras)"],
+        "tags": [
+          "Admin (Sarpras)"
+        ],
         "summary": "Mengambil Seluruh Antrean Laporan Kampus (Role SARPRAS)",
         "description": "Mengambil seluruh tiket laporan fasilitas di kampus untuk ditinjau oleh Admin. Jika pelapor mengaktifkan mode anonim, identitas disamarkan menjadi 'Anonim'.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["PENDING", "DIPROSES", "SELESAI", "DITOLAK"] }, "description": "Filter status laporan" },
-          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 }, "description": "Halaman paginasi" },
-          { "name": "per_page", "in": "query", "schema": { "type": "integer", "default": 10 }, "description": "Jumlah data per halaman" }
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "DIPROSES",
+                "SELESAI",
+                "DITOLAK"
+              ]
+            },
+            "description": "Filter status laporan"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Halaman paginasi"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Jumlah data per halaman"
+          }
         ],
         "responses": {
           "200": {
@@ -420,11 +1176,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Berhasil mengambil seluruh data laporan" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil seluruh data laporan"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Report" }
+                      "items": {
+                        "$ref": "#/components/schemas/Report"
+                      }
                     }
                   }
                 }
@@ -435,7 +1199,29 @@
             "description": "Akses ditolak (Khusus role SARPRAS)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -444,18 +1230,34 @@
     },
     "/admin/reports/{id}/status": {
       "patch": {
-        "tags": ["Admin (Sarpras)"],
+        "tags": [
+          "Admin (Sarpras)"
+        ],
         "summary": "Memperbarui Status Penanganan Laporan (UC-07)",
         "description": "Mengubah status tiket laporan menjadi DIPROSES, SELESAI, atau DITOLAK. Jika status DITOLAK, field rejectionReason wajib diisi. Aksi ini otomatis mengirimkan notifikasi ke pelapor.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "ID tiket laporan yang akan diperbarui" }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID tiket laporan yang akan diperbarui"
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateStatusRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStatusRequest"
+              }
             }
           }
         },
@@ -467,9 +1269,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Status laporan berhasil diperbarui menjadi DIPROSES" },
-                    "data": { "$ref": "#/components/schemas/Report" }
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Status laporan berhasil diperbarui menjadi DIPROSES"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
                   }
                 }
               }
@@ -479,24 +1289,64 @@
             "description": "Status tidak valid atau alasan penolakan kosong saat status DITOLAK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
           "403": {
             "description": "Akses ditolak (Khusus role SARPRAS)"
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/admin/stats": {
       "get": {
-        "tags": ["Admin (Sarpras)"],
+        "tags": [
+          "Admin (Sarpras)"
+        ],
         "summary": "Mengambil Statistik & Data Analitik Kerusakan Fasilitas",
         "description": "Mengambil data analitik total laporan, sebaran status (pending, diproses, selesai, ditolak), dan tren historis untuk halaman grafik statistik.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "name": "timeframe", "in": "query", "schema": { "type": "string", "enum": ["weekly", "monthly"], "default": "weekly" }, "description": "Rentang waktu grafik tren (7 hari atau 30 hari)" }
+          {
+            "name": "timeframe",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "weekly",
+                "monthly"
+              ],
+              "default": "weekly"
+            },
+            "description": "Rentang waktu grafik tren (7 hari atau 30 hari)"
+          }
         ],
         "responses": {
           "200": {
@@ -506,19 +1356,40 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Berhasil mengambil data statistik dashboard" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil data statistik dashboard"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "summary": {
                           "type": "object",
                           "properties": {
-                            "total": { "type": "integer", "example": 25 },
-                            "pending": { "type": "integer", "example": 8 },
-                            "inProgress": { "type": "integer", "example": 10 },
-                            "completed": { "type": "integer", "example": 5 },
-                            "rejected": { "type": "integer", "example": 2 }
+                            "total": {
+                              "type": "integer",
+                              "example": 25
+                            },
+                            "pending": {
+                              "type": "integer",
+                              "example": 8
+                            },
+                            "inProgress": {
+                              "type": "integer",
+                              "example": 10
+                            },
+                            "completed": {
+                              "type": "integer",
+                              "example": 5
+                            },
+                            "rejected": {
+                              "type": "integer",
+                              "example": 2
+                            }
                           }
                         },
                         "chartData": {
@@ -526,8 +1397,14 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "date": { "type": "string", "example": "2026-10-12" },
-                              "count": { "type": "integer", "example": 4 }
+                              "date": {
+                                "type": "string",
+                                "example": "2026-10-12"
+                              },
+                              "count": {
+                                "type": "integer",
+                                "example": 4
+                              }
                             }
                           }
                         }
@@ -537,16 +1414,42 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/notifications": {
       "get": {
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "summary": "Mengambil Riwayat Notifikasi Pengguna (UC-09)",
         "description": "Mengambil daftar notifikasi pembaruan status laporan milik pengguna yang sedang terotentikasi.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Daftar notifikasi berhasil dimuat",
@@ -555,13 +1458,41 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Berhasil mengambil daftar notifikasi" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil daftar notifikasi"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Notification" }
+                      "items": {
+                        "$ref": "#/components/schemas/Notification"
+                      }
                     }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -571,12 +1502,26 @@
     },
     "/notifications/{id}/read": {
       "patch": {
-        "tags": ["Notifications"],
+        "tags": [
+          "Notifications"
+        ],
         "summary": "Menandai Notifikasi Telah Dibaca (UC-09)",
         "description": "Memperbarui atribut isRead notifikasi menjadi true.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "ID notifikasi yang akan ditandai telah dibaca" }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID notifikasi yang akan ditandai telah dibaca"
+          }
         ],
         "responses": {
           "200": {
@@ -586,10 +1531,546 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "message": { "type": "string", "example": "Notifikasi berhasil ditandai telah dibaca" },
-                    "data": { "$ref": "#/components/schemas/Notification" }
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Notifikasi berhasil ditandai telah dibaca"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Notification"
+                    }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Permintaan Pemulihan Kata Sandi (Lupa Password)",
+        "description": "Mengirimkan token dan tautan pemulihan kata sandi ke email terdaftar pengguna.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tautan pemulihan kata sandi berhasil dibuat dan dikirim",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Tautan pemulihan kata sandi telah dikirim ke email terdaftar."
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                          "example": "bintang@telkomuniversity.ac.id"
+                        },
+                        "resetToken": {
+                          "type": "string",
+                          "example": "38616465376435612d34393234..."
+                        },
+                        "resetLink": {
+                          "type": "string",
+                          "example": "/reset-password?token=..."
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email tidak valid atau tidak disertakan"
+          },
+          "404": {
+            "description": "Akun tidak ditemukan"
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Reset Kata Sandi Baru",
+        "description": "Memperbarui kata sandi pengguna menggunakan token pemulihan yang valid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kata sandi berhasil direset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Kata sandi berhasil direset. Silakan login kembali menggunakan kata sandi baru Anda."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Token tidak valid atau sudah kadaluwarsa"
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/avatar": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Perbarui Foto Profil Avatar Pengguna",
+        "description": "Memperbarui foto profil avatar pengguna via URL atau upload file gambar.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAvatarRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Foto profil berhasil diperbarui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Foto profil berhasil diperbarui"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Berkas atau URL avatar tidak valid"
+          },
+          "401": {
+            "description": "Tidak terautentikasi"
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/notification-preferences": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Atur Preferensi Notifikasi Pengguna",
+        "description": "Mengaktifkan atau menonaktifkan penerimaan notifikasi bagi akun pengguna.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferenceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preferensi notifikasi berhasil diubah",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Preferensi notifikasi berhasil diubah menjadi Aktif"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Field enabled tidak bertipe boolean"
+          },
+          "401": {
+            "description": "Tidak terautentikasi"
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reports/bulk-status": {
+      "patch": {
+        "tags": [
+          "Admin / Sarpras"
+        ],
+        "summary": "Pembaruan Massal Status Laporan (Bulk Status Update - TC26)",
+        "description": "Memperbarui status penanganan beberapa laporan sekaligus dan mengirimkan notifikasi otomatis ke masing-masing pelapor.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkStatusUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status laporan massal berhasil diperbarui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil memperbarui 5 status laporan menjadi DIPROSES"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "example": 5
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "DIPROSES"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Array reportIds kosong atau status tidak valid"
+          },
+          "403": {
+            "description": "Akses ditolak (khusus Admin / Sarpras)"
+          },
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/read-all": {
+      "patch": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Menandai Seluruh Notifikasi Pengguna Telah Dibaca",
+        "description": "Memperbarui status isRead menjadi true untuk seluruh notifikasi yang belum dibaca milik pengguna yang sedang login.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Seluruh notifikasi berhasil ditandai telah dibaca",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Seluruh notifikasi berhasil ditandai telah dibaca"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "updatedCount": {
+                          "type": "integer",
+                          "example": 4
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Pengguna belum terautentikasi"
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/{id}": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Mengambil Rincian Detail Laporan Spesifik (UC-05)",
+        "description": "Mengambil rincian lengkap satu laporan kerusakan berdasarkan ID. Apabila laporan dibuat dengan mode anonim, identitas asli pelapor disamarkan secara otomatis untuk pemohon non-SARPRAS.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID unik laporan kerusakan (UUID)",
+            "example": "0bb8e281-db64-4f79-8f56-fed20c01d24a"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rincian laporan berhasil dimuat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Berhasil mengambil detail laporan"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Report"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID laporan tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Pengguna tidak terautentikasi (Token JWT tidak disertakan atau kedaluwarsa)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Laporan dengan ID tersebut tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan internal pada server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -597,5 +2078,31 @@
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Layanan registrasi akun, login civitas, dan alur pemulihan kata sandi (Forgot & Reset Password)"
+    },
+    {
+      "name": "Users",
+      "description": "Pengelolaan profil pengguna, pembaruan foto avatar, dan pengaturan preferensi notifikasi"
+    },
+    {
+      "name": "Facilities",
+      "description": "Master data gedung, ruangan, laboratorium, toilet, dan fasilitas kampus lainnya"
+    },
+    {
+      "name": "Reports",
+      "description": "Pelaporan kerusakan fasilitas, unggah foto bukti, feed publik kampus, dan riwayat laporan"
+    },
+    {
+      "name": "Admin / Sarpras",
+      "description": "Antrean verifikasi laporan sarpras, pembaruan status laporan (tunggal & massal/bulk), dan analitik statistik dashboard"
+    },
+    {
+      "name": "Notifications",
+      "description": "Pusat notifikasi riwayat status pelaporan, penandaan notifikasi telah dibaca, dan tandai semua dibaca"
+    }
+  ]
 }

@@ -51,7 +51,24 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // 3. Kumpulkan URL Foto Bukti dari Files (Multer) maupun Body Payload
+    // 3. Batasi Pengguna Maksimal 3 Laporan per Hari (FR-RPT-05 / TC16)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayReportsCount = await prisma.report.count({
+      where: {
+        userId,
+        createdAt: { gte: todayStart },
+      },
+    });
+
+    if (todayReportsCount >= 3) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Laporan gagal dibuat karena melebihi batas maksimal 3 laporan harian.',
+      });
+    }
+
+    // 4. Kumpulkan URL Foto Bukti dari Files (Multer) maupun Body Payload
     const photoUrls: string[] = [];
 
     // Dari file fisik yang diunggah via Multer
@@ -129,7 +146,85 @@ export const createReport = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 2. Ambil Riwayat Laporan Milik User Sendiri (UC-05)
+// 2. Ambil Daftar Seluruh Laporan Publik (Feed Kampus)
+export const getAllPublicReports = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, facilityId, page, per_page, limit } = req.query;
+
+    const whereClause: any = {};
+    if (status) {
+      whereClause.status = String(status);
+    }
+    if (facilityId) {
+      whereClause.facilityId = String(facilityId);
+    }
+
+    const isPaginated = page !== undefined || per_page !== undefined || limit !== undefined;
+    const pageNum = Math.max(1, parseInt(String(page || 1), 10));
+    const limitNum = Math.max(1, parseInt(String(per_page || limit || 10), 10));
+
+    const total = await prisma.report.count({ where: whereClause });
+
+    const reports = await prisma.report.findMany({
+      where: whereClause,
+      include: {
+        facility: true,
+        photos: true,
+        user: {
+          select: {
+            id: true,
+            nama: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      ...(isPaginated && {
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+      }),
+    });
+
+    const sanitizedReports = reports.map((r) => {
+      if (r.isAnonymous && req.user?.role !== 'SARPRAS') {
+        return {
+          ...r,
+          user: {
+            id: 'anonymous',
+            nama: 'Anonim',
+            role: 'MAHASISWA',
+          },
+        };
+      }
+      return r;
+    });
+
+    const responsePayload: any = {
+      status: 'success',
+      message: 'Berhasil mengambil daftar laporan publik',
+      data: sanitizedReports,
+    };
+
+    if (isPaginated) {
+      responsePayload.meta = {
+        page: pageNum,
+        per_page: limitNum,
+        total,
+        total_pages: Math.ceil(total / limitNum) || 1,
+      };
+    }
+
+    return res.status(200).json(responsePayload);
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil daftar laporan publik',
+      error,
+    });
+  }
+};
+
+// 3. Ambil Riwayat Laporan Milik User Sendiri (UC-05)
 export const getMyReports = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId || req.user?.id;

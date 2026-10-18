@@ -14,10 +14,10 @@ import notificationRoutes from './routes/notification.routes';
 
 const app = express();
 
-// Rate Limiter: Maksimal 100 request per 15 menit per IP
+// Rate Limiter: Maksimal 1000 request per 15 menit per IP (fleksibel untuk pengujian)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: {
     status: 'error',
     message: 'Terlalu banyak permintaan dari IP ini, silakan coba lagi nanti.',

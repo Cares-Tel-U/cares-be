@@ -75,3 +75,28 @@ export const handleUploadReportPhotos = (req: any, res: any, next: any) => {
     next();
   });
 };
+
+export const handleUploadAvatar = (req: any, res: any, next: any) => {
+  uploadReportPhotos.single('avatar')(req, res, (err: any) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            status: 'error',
+            message: 'Ukuran foto avatar terlalu besar. Maksimal 5 MB.',
+          });
+        }
+        return res.status(400).json({
+          status: 'error',
+          message: `Gagal mengunggah foto avatar: ${err.message}`,
+        });
+      }
+      return res.status(400).json({
+        status: 'error',
+        message: err.message || 'Format file foto avatar tidak didukung.',
+      });
+    }
+    next();
+  });
+};
+
