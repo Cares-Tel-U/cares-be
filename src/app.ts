@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
+import rateLimit from 'express-rate-limit';
 
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
@@ -13,6 +14,17 @@ import notificationRoutes from './routes/notification.routes';
 
 const app = express();
 
+// Rate Limiter: Maksimal 100 request per 15 menit per IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    status: 'error',
+    message: 'Terlalu banyak permintaan dari IP ini, silakan coba lagi nanti.',
+  },
+});
+
+app.use(limiter);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

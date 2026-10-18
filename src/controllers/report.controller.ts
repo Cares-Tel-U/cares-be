@@ -5,7 +5,7 @@ import { createNotification } from '../utils/notification.util';
 
 const prisma = new PrismaClient();
 
-// 1. Buat Laporan Kerusakan Baru (UC-04)
+// 1. Buat Laporan Kerusakan Baru (UC-04: Anonim, Upload Foto, & Cek Laporan Ganda)
 export const createReport = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId || req.user?.id;
@@ -47,14 +47,14 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     if (existingActiveReport) {
       return res.status(400).json({
         status: 'error',
-        message: 'Sudah ada laporan aktif untuk fasilitas ini yang sedang menunggu verifikasi atau diproses.',
+        message: 'Fasilitas ini sedang dalam penanganan atau memiliki laporan aktif yang belum selesai.',
       });
     }
 
     // 3. Kumpulkan URL Foto Bukti dari Files (Multer) maupun Body Payload
     const photoUrls: string[] = [];
 
-    // Dari file fisik yang diunggah
+    // Dari file fisik yang diunggah via Multer
     if (req.files && Array.isArray(req.files)) {
       req.files.forEach((file: Express.Multer.File) => {
         photoUrls.push(`/uploads/${file.filename}`);
@@ -187,6 +187,69 @@ export const getMyReports = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       status: 'error',
       message: 'Gagal mengambil laporan',
+      error,
+    });
+  }
+};
+
+// 3. Ambil Rincian Detail Satu Laporan Spesifik (GET /reports/:id)
+export const getReportById = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'ID laporan wajib diisi.',
+      });
+    }
+
+    const report = await prisma.report.findUnique({
+      where: { id: String(id) },
+      include: {
+        facility: true,
+        photos: true,
+        user: {
+          select: {
+            id: true,
+            nama: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!report) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Laporan tidak ditemukan.',
+      });
+    }
+
+    // Jika laporan anonim, sembunyikan info identitas user pelapor untuk publik/user non-SARPRAS
+    const responseReport =
+      report.isAnonymous && req.user?.role !== 'SARPRAS'
+        ? {
+            ...report,
+            user: {
+              ...report.user,
+              id: 'anonymous',
+              nama: 'Anonim',
+              email: 'hidden@anonymous.local',
+            },
+          }
+        : report;
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Berhasil mengambil detail laporan',
+      data: responseReport,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengambil detail laporan',
       error,
     });
   }

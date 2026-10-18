@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 
 // Filter tipe file gambar yang diizinkan
 const fileFilter = (
-  _req: Express.Request,
+  _req: any,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
@@ -44,19 +44,33 @@ export const uploadReportPhotos = multer({
   fileFilter,
 });
 
+export const upload = uploadReportPhotos;
+
 export const handleUploadReportPhotos = (req: any, res: any, next: any) => {
   uploadReportPhotos.any()(req, res, (err: any) => {
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ message: 'Ukuran foto terlalu besar. Maksimal 5 MB per file.' });
+          return res.status(400).json({
+            status: 'error',
+            message: 'Ukuran foto terlalu besar. Maksimal 5 MB per file.',
+          });
         }
         if (err.code === 'LIMIT_FILE_COUNT') {
-          return res.status(400).json({ message: 'Jumlah foto melebihi batas. Maksimal 5 file foto.' });
+          return res.status(400).json({
+            status: 'error',
+            message: 'Jumlah foto melebihi batas. Maksimal 5 file foto.',
+          });
         }
-        return res.status(400).json({ message: `Gagal mengunggah foto: ${err.message}` });
+        return res.status(400).json({
+          status: 'error',
+          message: `Gagal mengunggah foto: ${err.message}`,
+        });
       }
-      return res.status(400).json({ message: err.message || 'Format file foto tidak didukung.' });
+      return res.status(400).json({
+        status: 'error',
+        message: err.message || 'Format file foto tidak didukung.',
+      });
     }
     next();
   });
