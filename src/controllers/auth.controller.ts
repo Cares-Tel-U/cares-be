@@ -57,7 +57,14 @@ export const register = async (req: Request, res: Response) => {
 // 2. Login User
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Email dan password wajib diisi.',
+      });
+    }
 
     // Cek keberadaan user
     const user = await prisma.user.findUnique({ where: { email } });
@@ -77,14 +84,17 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate JWT Token
-    const token = generateToken({ id: user.id, role: user.role });
+    // Generate JWT Token (30 hari jika rememberMe true, 1 hari jika false/default)
+    const tokenExpiresIn = rememberMe ? '30d' : '1d';
+    const token = generateToken({ id: user.id, role: user.role }, tokenExpiresIn);
 
     return res.status(200).json({
       status: 'success',
       message: 'Login berhasil',
       data: {
         token,
+        rememberMe: Boolean(rememberMe),
+        expiresIn: tokenExpiresIn,
         user: {
           id: user.id,
           email: user.email,
