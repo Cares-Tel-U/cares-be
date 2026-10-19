@@ -79,7 +79,55 @@ async function main() {
     },
   });
 
-  console.log('Seeding Pengguna Berhasil: 2 Akun Mahasiswa & 2 Akun Sarpras');
+  // Akun Mahasiswa 3 (Pengguna Satu)
+  const userPengguna1 = await prisma.user.upsert({
+    where: { email: 'pengguna1@telkomuniversity.ac.id' },
+    update: {
+      nama: 'Pengguna Satu',
+      password: await hashPassword('Password123'),
+      role: Role.MAHASISWA,
+    },
+    create: {
+      email: 'pengguna1@telkomuniversity.ac.id',
+      nama: 'Pengguna Satu',
+      password: await hashPassword('Password123'),
+      role: Role.MAHASISWA,
+    },
+  });
+
+  // Akun Mahasiswa 4 (Pengguna Dua)
+  const userPengguna2 = await prisma.user.upsert({
+    where: { email: 'pengguna2@telkomuniversity.ac.id' },
+    update: {
+      nama: 'Pengguna Dua',
+      password: await hashPassword('Password123'),
+      role: Role.MAHASISWA,
+    },
+    create: {
+      email: 'pengguna2@telkomuniversity.ac.id',
+      nama: 'Pengguna Dua',
+      password: await hashPassword('Password123'),
+      role: Role.MAHASISWA,
+    },
+  });
+
+  // Akun Mahasiswa 5 (Pengguna Tiga)
+  const userPengguna3 = await prisma.user.upsert({
+    where: { email: 'pengguna3@telkomuniversity.ac.id' },
+    update: {
+      nama: 'Pengguna Tiga',
+      password: await hashPassword('Password123'),
+      role: Role.MAHASISWA,
+    },
+    create: {
+      email: 'pengguna3@telkomuniversity.ac.id',
+      nama: 'Pengguna Tiga',
+      password: await hashPassword('Password123'),
+      role: Role.MAHASISWA,
+    },
+  });
+
+  console.log('Seeding Pengguna Berhasil: 5 Akun Mahasiswa & 2 Akun Sarpras');
 
   // 2. Data Master Fasilitas Kampus
   const facilitiesData = [
