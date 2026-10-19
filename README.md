@@ -30,12 +30,14 @@ Berkas koleksi Postman lengkap dengan contoh dummy payload siap uji telah disedi
 
 Database telah dilengkapi dengan data dummy lengkap sehingga pengujian dapat dilakukan langsung tanpa membuat data baru:
 
-| Peran | Nama Akun | Email | Kata Sandi | Keterangan |
-| :--- | :--- | :--- | :--- | :--- |
-| **Mahasiswa** | Amba Ngawi | `ambangawi@telkomuniversity.ac.id` | `password123` | Pelapor reguler (memiliki laporan & notifikasi) |
-| **Mahasiswa** | Bintang Ridwan Pribadi | `bintang@telkomuniversity.ac.id` | `password123` | Pelapor reguler |
-| **Admin Sarpras** | Admin Sarpras Tel-U | `admin@telkomuniversity.ac.id` | `admin123` | Hak akses penuh verifikasi laporan |
-| **Admin Sarpras** | Petugas Sarpras Lapangan | `sarpras@telkomuniversity.ac.id` | `sarpras123` | Hak akses teknisi lapangan |
+| Peran | Nama Akun | Email | NIM | Kata Sandi | Keterangan |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Mahasiswa** | Pengguna Satu | `pengguna1@telkomuniversity.ac.id` | `1301210001` | `Password123` | Pelapor reguler (memiliki laporan & notifikasi) |
+| **Mahasiswa** | Pengguna Dua | `pengguna2@telkomuniversity.ac.id` | `1301210002` | `Password123` | Pelapor reguler (memiliki laporan & notifikasi) |
+| **Mahasiswa** | Pengguna Tiga | `pengguna3@telkomuniversity.ac.id` | `1301210003` | `Password123` | Pelapor reguler (laporan anonim & notifikasi) |
+| **Admin Sarpras** | Admin Satu | `admin1@telkomuniversity.ac.id` | - | `Admin123` | Hak akses penuh verifikasi laporan |
+| **Admin Sarpras** | Admin Dua | `admin2@telkomuniversity.ac.id` | - | `Admin123` | Hak akses penuh tindak lanjut sarpras |
+| **Admin Sarpras** | Admin Tiga | `admin3@telkomuniversity.ac.id` | - | `Admin123` | Hak akses penuh manajemen fasilitas |
 
 ---
 

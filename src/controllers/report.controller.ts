@@ -1,5 +1,7 @@
 import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import path from 'path';
+import fs from 'fs';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createNotification } from '../utils/notification.util';
 
@@ -9,7 +11,7 @@ const prisma = new PrismaClient();
 export const createReport = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId || req.user?.id;
-    const { judul, deskripsi, facilityId, isAnonymous } = req.body;
+    const { judul, deskripsi, facilityId, isAnonymous, namaGedung, namaRuangan } = req.body;
 
     if (!userId) {
       return res.status(401).json({
@@ -25,11 +27,34 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // 1. Validasi Keberadaan Fasilitas
-    const facility = await prisma.facility.findUnique({
-      where: { id: String(facilityId) },
-    });
-    if (!facility) {
+    // 1. Validasi / Resolusi Keberadaan Fasilitas
+    let resolvedFacilityId = facilityId ? String(facilityId) : '';
+    let facility = resolvedFacilityId
+      ? await prisma.facility.findUnique({ where: { id: resolvedFacilityId } })
+      : null;
+
+    // Jika fasilitas tidak ditemukan tetapi client mengirim nama gedung / ruangan, buat otomatis
+    if (!facility && (namaRuangan || namaGedung)) {
+      const roomName = String(namaRuangan || 'Ruangan Umum').trim();
+      const buildingName = String(namaGedung || 'Area Kampus').trim();
+
+      const existingFacility = await prisma.facility.findFirst({
+        where: { nama: roomName, lokasi: buildingName },
+      });
+
+      if (existingFacility) {
+        facility = existingFacility;
+      } else {
+        facility = await prisma.facility.create({
+          data: {
+            nama: roomName,
+            lokasi: buildingName,
+            kategori: 'LAINNYA',
+          },
+        });
+      }
+      resolvedFacilityId = facility.id;
+    } else if (!facility) {
       return res.status(404).json({
         status: 'error',
         message: 'Fasilitas tidak ditemukan.',
@@ -39,7 +64,7 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     // 2. Cegah Laporan Duplikat untuk Fasilitas yang Sedang Aktif (TC11)
     const existingActiveReport = await prisma.report.findFirst({
       where: {
-        facilityId: String(facilityId),
+        facilityId: resolvedFacilityId,
         status: { in: ['PENDING', 'DIPROSES'] },
       },
     });
@@ -70,6 +95,10 @@ export const createReport = async (req: AuthRequest, res: Response) => {
 
     // 4. Kumpulkan URL Foto Bukti dari Files (Multer) maupun Body Payload
     const photoUrls: string[] = [];
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
     // Dari file fisik yang diunggah via Multer
     if (req.files && Array.isArray(req.files)) {
@@ -78,39 +107,73 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Dari payload body (jika mengirim photos atau foto berupa URL/Array)
-    const bodyPhotos = req.body.photos || req.body.foto;
-    if (bodyPhotos) {
-      if (Array.isArray(bodyPhotos)) {
-        bodyPhotos.forEach((item) => {
-          if (typeof item === 'string' && item.trim()) {
-            photoUrls.push(item.trim());
-          }
+    // Dari payload body (jika mengirim photos atau foto berupa URL/Array atau base64)
+    const rawPhotos = req.body.photos || req.body.foto;
+    const candidatePhotos: string[] = [];
+    if (rawPhotos) {
+      if (Array.isArray(rawPhotos)) {
+        rawPhotos.forEach((item) => {
+          if (typeof item === 'string' && item.trim()) candidatePhotos.push(item.trim());
         });
-      } else if (typeof bodyPhotos === 'string' && bodyPhotos.trim()) {
+      } else if (typeof rawPhotos === 'string' && rawPhotos.trim()) {
         try {
-          const parsed = JSON.parse(bodyPhotos);
+          const parsed = JSON.parse(rawPhotos);
           if (Array.isArray(parsed)) {
             parsed.forEach((item) => {
-              if (typeof item === 'string' && item.trim()) photoUrls.push(item.trim());
+              if (typeof item === 'string' && item.trim()) candidatePhotos.push(item.trim());
             });
           } else {
-            photoUrls.push(bodyPhotos.trim());
+            candidatePhotos.push(rawPhotos.trim());
           }
         } catch {
-          photoUrls.push(bodyPhotos.trim());
+          candidatePhotos.push(rawPhotos.trim());
         }
       }
     }
 
+    for (const item of candidatePhotos) {
+      // Tolak jika file adalah PDF atau dokumen non-gambar (Poin 7)
+      if (item.startsWith('data:application/pdf') || item.toLowerCase().includes('.pdf')) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Format file tidak didukung. Hanya file gambar (JPG, PNG, WEBP) yang diizinkan.',
+        });
+      }
+
+      // Jika data base64 image: simpan ke file fisik di disk
+      if (item.startsWith('data:image/')) {
+        const matches = item.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+        if (matches && matches[2]) {
+          const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+          const filename = `report-${Date.now()}-${Math.round(Math.random() * 1e9)}.${ext}`;
+          const filePath = path.join(uploadDir, filename);
+          const buffer = Buffer.from(matches[2], 'base64');
+          fs.writeFileSync(filePath, buffer);
+          photoUrls.push(`/uploads/${filename}`);
+        } else {
+          photoUrls.push(item);
+        }
+      } else {
+        photoUrls.push(item);
+      }
+    }
+
+    // Validasi foto: maksimal 3 file foto (Poin 8)
+    if (photoUrls.length > 3) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Jumlah foto melebihi batas. Maksimal 3 file foto.',
+      });
+    }
+
     const anonymousFlag = isAnonymous === true || isAnonymous === 'true';
 
-    // 4. Simpan Laporan beserta Relasi Foto ke Database
+    // 5. Simpan Laporan beserta Relasi Foto ke Database
     const report = await prisma.report.create({
       data: {
         judul: String(judul).trim(),
         deskripsi: String(deskripsi).trim(),
-        facilityId: String(facilityId),
+        facilityId: resolvedFacilityId,
         userId,
         isAnonymous: anonymousFlag,
         ...(photoUrls.length > 0 && {

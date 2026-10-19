@@ -14,10 +14,11 @@ import notificationRoutes from './routes/notification.routes';
 
 const app = express();
 
-// Rate Limiter: Maksimal 1000 request per 15 menit per IP (fleksibel untuk pengujian)
+// Rate Limiter: Sangat fleksibel dan mendukung otomatisasi pengujian
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
+  max: 50000,
+  skip: () => process.env.NODE_ENV === 'test',
   message: {
     status: 'error',
     message: 'Terlalu banyak permintaan dari IP ini, silakan coba lagi nanti.',
@@ -26,8 +27,8 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Sajikan file statis hasil upload foto bukti laporan
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

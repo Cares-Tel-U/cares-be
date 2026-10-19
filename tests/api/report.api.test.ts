@@ -10,6 +10,8 @@ const { mockPrisma } = vi.hoisted(() => {
     mockPrisma: {
       facility: {
         findUnique: vi.fn(),
+        findFirst: vi.fn(),
+        create: vi.fn(),
       },
       report: {
         findFirst: vi.fn(),
@@ -180,6 +182,90 @@ describe('Report API Tests (/api/v1/reports/*)', () => {
         });
 
       expect(res.status).toBe(401);
+    });
+
+    it('should reject report with 400 if attachment contains PDF file', async () => {
+      mockPrisma.facility.findUnique.mockResolvedValue(mockFacilities.kelas);
+      mockPrisma.report.findFirst.mockResolvedValue(null);
+      mockPrisma.report.count.mockResolvedValue(0);
+
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Laporan Kerusakan',
+          deskripsi: 'Deskripsi masalah',
+          facilityId: mockFacilities.kelas.id,
+          photos: ['data:application/pdf;base64,JVBERi0xLjQK...'],
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Hanya file gambar');
+    });
+
+    it('should reject report with 400 if photos exceed 3 files', async () => {
+      mockPrisma.facility.findUnique.mockResolvedValue(mockFacilities.kelas);
+      mockPrisma.report.findFirst.mockResolvedValue(null);
+      mockPrisma.report.count.mockResolvedValue(0);
+
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Laporan Kerusakan',
+          deskripsi: 'Deskripsi masalah',
+          facilityId: mockFacilities.kelas.id,
+          photos: [
+            '/uploads/foto1.jpg',
+            '/uploads/foto2.jpg',
+            '/uploads/foto3.jpg',
+            '/uploads/foto4.jpg',
+          ],
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Maksimal 3 file foto');
+    });
+
+    it('should auto-create facility when custom room and building are provided', async () => {
+      mockPrisma.facility.findUnique.mockResolvedValue(null);
+      mockPrisma.facility.findFirst.mockResolvedValueOnce(null); // not found in DB
+      mockPrisma.facility.create.mockResolvedValue({
+        id: 'new-custom-facility',
+        nama: 'TULT-07-14',
+        lokasi: 'TULT',
+        kategori: 'LAINNYA',
+      });
+      mockPrisma.report.findFirst.mockResolvedValue(null);
+      mockPrisma.report.count.mockResolvedValue(0);
+      mockPrisma.report.create.mockResolvedValue({
+        ...mockReports.pendingReport,
+        id: 'new-rep-custom',
+        facilityId: 'new-custom-facility',
+      });
+      mockPrisma.notification.create.mockResolvedValue({});
+
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Lampu Rusak di TULT-07-14',
+          deskripsi: 'Lampu ruang kelas mati total',
+          facilityId: 'custom-fac',
+          namaRuangan: 'TULT-07-14',
+          namaGedung: 'TULT',
+          photos: ['/uploads/lampu.jpg'],
+        });
+
+      expect(res.status).toBe(201);
+      expect(mockPrisma.facility.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            nama: 'TULT-07-14',
+            lokasi: 'TULT',
+          }),
+        })
+      );
     });
   });
 

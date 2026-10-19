@@ -33,6 +33,7 @@ enum KategoriFasilitas {
 model User {
   id                     String    @id @default(uuid())
   email                  String    @unique
+  nim                    String?   @unique
   password               String
   nama                   String
   avatar                 String?

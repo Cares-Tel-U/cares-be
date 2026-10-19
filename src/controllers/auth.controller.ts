@@ -8,15 +8,65 @@ const prisma = new PrismaClient();
 // 1. Register User
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, nama, role } = req.body;
+    const { email, password, nama, role, nim } = req.body;
+
+    // Validasi Panjang Nama (2 - 50 karakter)
+    if (!nama || typeof nama !== 'string' || nama.trim().length < 2 || nama.trim().length > 50) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nama lengkap wajib memiliki panjang antara 2 hingga 50 karakter.',
+      });
+    }
+
+    // Validasi Alamat Email
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Format alamat email tidak valid.',
+      });
+    }
 
     // Cek apakah email sudah terdaftar
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: String(email).trim().toLowerCase() },
+    });
     if (existingUser) {
       return res.status(400).json({
         status: 'error',
         message: 'Email sudah terdaftar.',
       });
+    }
+
+    // Validasi Format Password: Minimal 8 karakter, mengandung lowercase, uppercase, dan number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!password || !passwordRegex.test(String(password))) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Password wajib minimal 8 karakter dan mengandung kombinasi huruf besar, huruf kecil, serta angka.',
+      });
+    }
+
+    // Validasi NIM (Jika disediakan: wajib numerik dan unik)
+    let cleanedNim: string | null = null;
+    if (nim !== undefined && nim !== null && String(nim).trim() !== '') {
+      const nimStr = String(nim).trim();
+      if (!/^\d+$/.test(nimStr)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'NIM harus berupa angka.',
+        });
+      }
+
+      const existingNim = await prisma.user.findUnique({
+        where: { nim: nimStr },
+      });
+      if (existingNim) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'NIM sudah terdaftar. Silakan gunakan NIM lain atau hubungi administrator.',
+        });
+      }
+      cleanedNim = nimStr;
     }
 
     // Hash password sebelum disimpan
@@ -25,14 +75,16 @@ export const register = async (req: Request, res: Response) => {
     // Simpan user baru ke database
     const newUser = await prisma.user.create({
       data: {
-        email,
+        email: String(email).trim().toLowerCase(),
         password: hashedPassword,
-        nama,
+        nama: nama.trim(),
+        nim: cleanedNim,
         role: role || 'MAHASISWA',
       },
       select: {
         id: true,
         email: true,
+        nim: true,
         nama: true,
         role: true,
         createdAt: true,
@@ -332,6 +384,14 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({
         status: 'error',
         message: 'Kata sandi baru minimal 8 karakter.',
+      });
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(String(newPassword))) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Kata sandi baru minimal 8 karakter dan wajib mengandung kombinasi huruf besar, huruf kecil, serta angka.',
       });
     }
 

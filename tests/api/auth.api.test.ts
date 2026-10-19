@@ -53,7 +53,7 @@ describe('Auth API Tests (POST /api/v1/auth/* & /auth/*)', () => {
         .post('/api/v1/auth/register')
         .send({
           email: 'test@telkomuniversity.ac.id',
-          password: 'password123',
+          password: 'Password123',
           nama: 'Tester',
         });
 
@@ -64,13 +64,13 @@ describe('Auth API Tests (POST /api/v1/auth/* & /auth/*)', () => {
     });
 
     it('should reject registration with 400 if email already exists', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'exists' });
+      mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'exists' });
 
       const res = await request(app)
         .post('/api/v1/auth/register')
         .send({
           email: 'existing@telkomuniversity.ac.id',
-          password: 'password123',
+          password: 'Password123',
           nama: 'Tester',
         });
 
@@ -81,19 +81,101 @@ describe('Auth API Tests (POST /api/v1/auth/* & /auth/*)', () => {
     });
 
     it('should return 500 when database throws an unexpected error', async () => {
-      mockPrisma.user.findUnique.mockRejectedValue(new Error('DB Connection Timeout'));
+      mockPrisma.user.findUnique.mockRejectedValueOnce(new Error('DB Connection Timeout'));
 
       const res = await request(app)
         .post('/api/v1/auth/register')
         .send({
           email: 'error@telkomuniversity.ac.id',
-          password: 'password123',
+          password: 'Password123',
           nama: 'Tester',
         });
 
       expect(res.status).toBe(500);
       expect(res.body.status).toBe('error');
       expect(res.body.message).toBe('Gagal melakukan registrasi.');
+    });
+
+    it('should reject registration with 400 if nama is less than 2 or more than 50 characters', async () => {
+      const resShort = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'shortname@telkomuniversity.ac.id',
+          password: 'Password123',
+          nama: '1',
+        });
+
+      expect(resShort.status).toBe(400);
+      expect(resShort.body.message).toBe('Nama lengkap wajib memiliki panjang antara 2 hingga 50 karakter.');
+
+      const resLong = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'longname@telkomuniversity.ac.id',
+          password: 'Password123',
+          nama: 'A'.repeat(51),
+        });
+
+      expect(resLong.status).toBe(400);
+      expect(resLong.body.message).toBe('Nama lengkap wajib memiliki panjang antara 2 hingga 50 karakter.');
+    });
+
+    it('should reject registration with 400 if password does not meet complexity rules', async () => {
+      // Tanpa huruf besar
+      const resNoUpper = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'noupper@telkomuniversity.ac.id',
+          password: 'password123',
+          nama: 'Valid Name',
+        });
+
+      expect(resNoUpper.status).toBe(400);
+      expect(resNoUpper.body.message).toContain('Password wajib minimal 8 karakter');
+
+      // Tanpa angka
+      const resNoNum = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'nonum@telkomuniversity.ac.id',
+          password: 'PasswordBagus',
+          nama: 'Valid Name',
+        });
+
+      expect(resNoNum.status).toBe(400);
+      expect(resNoNum.body.message).toContain('Password wajib minimal 8 karakter');
+    });
+
+    it('should reject registration with 400 if nim is not numeric', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'nimtest@telkomuniversity.ac.id',
+          password: 'Password123',
+          nama: 'Valid Name',
+          nim: '130119ABCD',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('NIM harus berupa angka.');
+    });
+
+    it('should reject registration with 400 if nim already exists', async () => {
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce(null) // email check passes
+        .mockResolvedValueOnce({ id: 'existing-nim-user' }); // nim check fails
+
+      const res = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'nimduplicate@telkomuniversity.ac.id',
+          password: 'Password123',
+          nama: 'Valid Name',
+          nim: '1301190001',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('NIM sudah terdaftar.');
     });
   });
 

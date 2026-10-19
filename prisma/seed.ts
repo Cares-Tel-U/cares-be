@@ -9,127 +9,85 @@ async function hashPassword(password: string): Promise<string> {
 }
 
 async function main() {
-  console.log('Memulai proses seeding data dummy CARES...');
+  console.log('Memulai proses pembersihan dan seeding data database CARES...');
 
-  // 1. Data Dummy Pengguna (Users)
-  const defaultPasswordMahasiswa = await hashPassword('password123');
-  const defaultPasswordAdmin = await hashPassword('admin123');
+  // 0. Reset & Bersihkan Seluruh Data Lama di Database
+  console.log('1. Membersihkan data lama...');
+  await prisma.notification.deleteMany({});
+  await prisma.reportPhoto.deleteMany({});
+  await prisma.report.deleteMany({});
+  await prisma.facility.deleteMany({});
+  await prisma.user.deleteMany({});
+  console.log('Semua tabel berhasil dibersihkan.');
 
-  // Akun Mahasiswa 1 (Amba Ngawi)
-  const userMhs1 = await prisma.user.upsert({
-    where: { email: 'ambangawi@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Amba Ngawi',
-      password: defaultPasswordMahasiswa,
-      role: Role.MAHASISWA,
-    },
-    create: {
-      email: 'ambangawi@telkomuniversity.ac.id',
-      nama: 'Amba Ngawi',
-      password: defaultPasswordMahasiswa,
-      role: Role.MAHASISWA,
-    },
-  });
+  // 1. Data Dummy Pengguna (Hanya Pengguna Satu - Tiga & Admin Satu - Tiga)
+  console.log('2. Menyiapkan akun pengguna dan admin sesuai standar validasi...');
+  const passwordMahasiswa = await hashPassword('Password123');
+  const passwordAdmin = await hashPassword('Admin123');
 
-  // Akun Mahasiswa 2 (Bintang Ridwan Pribadi)
-  const userMhs2 = await prisma.user.upsert({
-    where: { email: 'bintang@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Bintang Ridwan Pribadi',
-      password: defaultPasswordMahasiswa,
-      role: Role.MAHASISWA,
-    },
-    create: {
-      email: 'bintang@telkomuniversity.ac.id',
-      nama: 'Bintang Ridwan Pribadi',
-      password: defaultPasswordMahasiswa,
-      role: Role.MAHASISWA,
-    },
-  });
-
-  // Akun Petugas Sarpras / Admin 1
-  const userAdmin1 = await prisma.user.upsert({
-    where: { email: 'admin@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Admin Sarpras Tel-U',
-      password: defaultPasswordAdmin,
-      role: Role.SARPRAS,
-    },
-    create: {
-      email: 'admin@telkomuniversity.ac.id',
-      nama: 'Admin Sarpras Tel-U',
-      password: defaultPasswordAdmin,
-      role: Role.SARPRAS,
-    },
-  });
-
-  // Akun Petugas Sarpras 2
-  const userAdmin2 = await prisma.user.upsert({
-    where: { email: 'sarpras@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Petugas Sarpras Lapangan',
-      password: defaultPasswordAdmin,
-      role: Role.SARPRAS,
-    },
-    create: {
-      email: 'sarpras@telkomuniversity.ac.id',
-      nama: 'Petugas Sarpras Lapangan',
-      password: defaultPasswordAdmin,
-      role: Role.SARPRAS,
-    },
-  });
-
-  // Akun Mahasiswa 3 (Pengguna Satu)
-  const userPengguna1 = await prisma.user.upsert({
-    where: { email: 'pengguna1@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Pengguna Satu',
-      password: await hashPassword('Password123'),
-      role: Role.MAHASISWA,
-    },
-    create: {
+  // Akun Mahasiswa / Pelapor
+  const userPengguna1 = await prisma.user.create({
+    data: {
       email: 'pengguna1@telkomuniversity.ac.id',
       nama: 'Pengguna Satu',
-      password: await hashPassword('Password123'),
+      nim: '1301210001',
+      password: passwordMahasiswa,
       role: Role.MAHASISWA,
     },
   });
 
-  // Akun Mahasiswa 4 (Pengguna Dua)
-  const userPengguna2 = await prisma.user.upsert({
-    where: { email: 'pengguna2@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Pengguna Dua',
-      password: await hashPassword('Password123'),
-      role: Role.MAHASISWA,
-    },
-    create: {
+  const userPengguna2 = await prisma.user.create({
+    data: {
       email: 'pengguna2@telkomuniversity.ac.id',
       nama: 'Pengguna Dua',
-      password: await hashPassword('Password123'),
+      nim: '1301210002',
+      password: passwordMahasiswa,
       role: Role.MAHASISWA,
     },
   });
 
-  // Akun Mahasiswa 5 (Pengguna Tiga)
-  const userPengguna3 = await prisma.user.upsert({
-    where: { email: 'pengguna3@telkomuniversity.ac.id' },
-    update: {
-      nama: 'Pengguna Tiga',
-      password: await hashPassword('Password123'),
-      role: Role.MAHASISWA,
-    },
-    create: {
+  const userPengguna3 = await prisma.user.create({
+    data: {
       email: 'pengguna3@telkomuniversity.ac.id',
       nama: 'Pengguna Tiga',
-      password: await hashPassword('Password123'),
+      nim: '1301210003',
+      password: passwordMahasiswa,
       role: Role.MAHASISWA,
     },
   });
 
-  console.log('Seeding Pengguna Berhasil: 5 Akun Mahasiswa & 2 Akun Sarpras');
+  // Akun Petugas Sarpras / Admin
+  const userAdmin1 = await prisma.user.create({
+    data: {
+      email: 'admin1@telkomuniversity.ac.id',
+      nama: 'Admin Satu',
+      password: passwordAdmin,
+      role: Role.SARPRAS,
+    },
+  });
 
-  // 2. Data Master Fasilitas Kampus
+  const userAdmin2 = await prisma.user.create({
+    data: {
+      email: 'admin2@telkomuniversity.ac.id',
+      nama: 'Admin Dua',
+      password: passwordAdmin,
+      role: Role.SARPRAS,
+    },
+  });
+
+  const userAdmin3 = await prisma.user.create({
+    data: {
+      email: 'admin3@telkomuniversity.ac.id',
+      nama: 'Admin Tiga',
+      password: passwordAdmin,
+      role: Role.SARPRAS,
+    },
+  });
+
+  console.log('Akun Berhasil Dibuat: 3 Mahasiswa (Pengguna Satu - Tiga) & 3 Admin (Admin Satu - Tiga)');
+
+  // 2. Data Master Fasilitas Kampus Telkom University
+  console.log('3. Menambahkan master data fasilitas kampus...');
   const facilitiesData = [
     { nama: 'Kelas KU 302', lokasi: 'Gedung B Lt. 3', kategori: KategoriFasilitas.KELAS },
     { nama: 'Kelas TULT 0801', lokasi: 'Gedung TULT Lt. 8', kategori: KategoriFasilitas.KELAS },
@@ -137,139 +95,133 @@ async function main() {
     { nama: 'Lab IoT & Multimedia', lokasi: 'Gedung A Lt. 2', kategori: KategoriFasilitas.LABORATORIUM },
     { nama: 'Toilet Pria Utama', lokasi: 'Gedung C Lt. 1', kategori: KategoriFasilitas.TOILET },
     { nama: 'Toilet Wanita', lokasi: 'Gedung TULT Lt. 5', kategori: KategoriFasilitas.TOILET },
-    { nama: 'Area Parkir Motor Timur', lokasi: 'Samping Lapangan Basket', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Area Parkir Motor Timur', lokasi: 'Kawasan Parkir Timur', kategori: KategoriFasilitas.PARKIRAN },
     { nama: 'Kantin Asrama Pusat', lokasi: 'Kawasan Kantin Tel-U', kategori: KategoriFasilitas.KANTIN },
   ];
 
   const createdFacilities = [];
   for (const f of facilitiesData) {
-    const existing = await prisma.facility.findFirst({
-      where: { nama: f.nama, lokasi: f.lokasi },
-    });
-    if (existing) {
-      createdFacilities.push(existing);
-    } else {
-      const created = await prisma.facility.create({ data: f });
-      createdFacilities.push(created);
-    }
+    const created = await prisma.facility.create({ data: f });
+    createdFacilities.push(created);
   }
 
-  console.log(`Seeding Fasilitas Berhasil: ${createdFacilities.length} Fasilitas Kampus Siap Digunakan`);
+  console.log(`${createdFacilities.length} Master fasilitas kampus berhasil ditambahkan.`);
 
-  // 3. Data Dummy Laporan Kerusakan (Reports) dengan 4 Status Berbeda
+  // 3. Data Laporan Kerusakan
+  console.log('4. Menambahkan data laporan kerusakan sarpras...');
   const facLab = createdFacilities.find((f) => f.kategori === KategoriFasilitas.LABORATORIUM) || createdFacilities[0]!;
   const facKelas = createdFacilities.find((f) => f.kategori === KategoriFasilitas.KELAS) || createdFacilities[1]!;
   const facToilet = createdFacilities.find((f) => f.kategori === KategoriFasilitas.TOILET) || createdFacilities[2]!;
   const facParkir = createdFacilities.find((f) => f.kategori === KategoriFasilitas.PARKIRAN) || createdFacilities[3]!;
 
-  // Cek apakah sudah ada laporan sejenis untuk menghindari duplikasi id
-  const existingReports = await prisma.report.findMany();
-  if (existingReports.length === 0) {
-    // Laporan 1: Status PENDING
-    const report1 = await prisma.report.create({
-      data: {
-        judul: 'AC Bocor dan Mengeluarkan Suara Bising',
-        deskripsi: 'AC di ruangan Lab meneteskan air ke meja komputer dan suhu ruangan terasa panas.',
-        status: StatusPelaporan.PENDING,
-        facilityId: facLab.id,
-        userId: userMhs1.id,
-        isAnonymous: false,
-        photos: {
-          create: [{ url: '/uploads/ac_bocor_dummy.jpg' }],
-        },
+  // Laporan 1: Status PENDING (Pengguna Satu)
+  const report1 = await prisma.report.create({
+    data: {
+      judul: 'AC Bocor dan Mengeluarkan Suara Bising',
+      deskripsi: 'AC di ruangan Lab Komputer IF.01 meneteskan air ke meja komputer dan suhu ruangan terasa panas.',
+      status: StatusPelaporan.PENDING,
+      facilityId: facLab.id,
+      userId: userPengguna1.id,
+      isAnonymous: false,
+      photos: {
+        create: [{ url: '/uploads/ac_bocor_dummy.jpg' }],
       },
-    });
+    },
+  });
 
-    // Laporan 2: Status DIPROSES
-    const report2 = await prisma.report.create({
-      data: {
-        judul: 'Proyektor Mati Total dan Kabel HDMI Rusak',
-        deskripsi: 'Proyektor di ruang kelas tidak menyala sama sekali saat dihubungkan ke sumber daya listrik.',
-        status: StatusPelaporan.DIPROSES,
-        catatan: 'Teknisi perlengkapan audio-visual telah ditugaskan ke lokasi untuk penggantian kabel.',
-        facilityId: facKelas.id,
-        userId: userMhs2.id,
-        isAnonymous: false,
-        photos: {
-          create: [
-            { url: '/uploads/proyektor_rusak_1.jpg' },
-            { url: '/uploads/proyektor_rusak_2.jpg' },
-          ],
-        },
+  // Laporan 2: Status DIPROSES (Pengguna Dua)
+  const report2 = await prisma.report.create({
+    data: {
+      judul: 'Proyektor Mati Total dan Kabel HDMI Rusak',
+      deskripsi: 'Proyektor di ruang kelas TULT 0801 tidak menyala sama sekali saat dihubungkan ke sumber daya listrik.',
+      status: StatusPelaporan.DIPROSES,
+      catatan: 'Teknisi perlengkapan audio-visual telah ditugaskan ke lokasi untuk penggantian kabel.',
+      facilityId: facKelas.id,
+      userId: userPengguna2.id,
+      isAnonymous: false,
+      photos: {
+        create: [
+          { url: '/uploads/proyektor_rusak_1.jpg' },
+          { url: '/uploads/proyektor_rusak_2.jpg' },
+        ],
       },
-    });
+    },
+  });
 
-    // Laporan 3: Status SELESAI
-    const report3 = await prisma.report.create({
-      data: {
-        judul: 'Kran Wastafel Toilet Patah dan Bocor',
-        deskripsi: 'Kran air pada wastafel nomor 2 patah sehingga air menyembur ke lantai.',
-        status: StatusPelaporan.SELESAI,
-        catatan: 'Penggantian unit kran wastafel baru telah selesai dikerjakan oleh tim sarpras.',
-        facilityId: facToilet.id,
-        userId: userMhs1.id,
-        isAnonymous: false,
-        photos: {
-          create: [
-            { url: '/uploads/kran_patah.jpg' },
-            { url: '/uploads/bukti_selesai_kran.jpg' },
-          ],
-        },
+  // Laporan 3: Status SELESAI (Pengguna Satu)
+  const report3 = await prisma.report.create({
+    data: {
+      judul: 'Kran Wastafel Toilet Patah dan Bocor',
+      deskripsi: 'Kran air pada wastafel nomor 2 patah sehingga air menyembur ke lantai toilet.',
+      status: StatusPelaporan.SELESAI,
+      catatan: 'Penggantian unit kran wastafel baru telah selesai dikerjakan oleh tim sarpras.',
+      facilityId: facToilet.id,
+      userId: userPengguna1.id,
+      isAnonymous: false,
+      photos: {
+        create: [
+          { url: '/uploads/kran_patah.jpg' },
+          { url: '/uploads/bukti_selesai_kran.jpg' },
+        ],
       },
-    });
+    },
+  });
 
-    // Laporan 4: Status DITOLAK (Mode Anonim)
-    const report4 = await prisma.report.create({
-      data: {
-        judul: 'Lampu Penerangan Parkiran Mati Sebagian',
-        deskripsi: 'Beberapa lampu sorot di area parkir bagian timur padam saat malam hari.',
-        status: StatusPelaporan.DITOLAK,
-        rejectionReason: 'Laporan duplikat dengan tiket penanganan sarpras nomor LAP-2026-004 yang sedang dikerjakan PLN kampus.',
-        facilityId: facParkir.id,
-        userId: userMhs1.id,
-        isAnonymous: true,
-        photos: {
-          create: [{ url: '/uploads/lampu_parkir.jpg' }],
-        },
+  // Laporan 4: Status DITOLAK (Pengguna Tiga - Mode Anonim)
+  const report4 = await prisma.report.create({
+    data: {
+      judul: 'Lampu Penerangan Parkiran Mati Sebagian',
+      deskripsi: 'Beberapa lampu sorot di area parkir bagian timur padam saat malam hari.',
+      status: StatusPelaporan.DITOLAK,
+      rejectionReason: 'Laporan duplikat dengan tiket penanganan sarpras nomor LAP-2026-004 yang sedang dikerjakan PLN kampus.',
+      facilityId: facParkir.id,
+      userId: userPengguna3.id,
+      isAnonymous: true,
+      photos: {
+        create: [{ url: '/uploads/lampu_parkir.jpg' }],
       },
-    });
+    },
+  });
 
-    // 4. Data Dummy Notifikasi Pengguna
-    await prisma.notification.createMany({
-      data: [
-        {
-          userId: userMhs1.id,
-          reportId: report1.id,
-          pesan: `Laporan kerusakan untuk ${facLab.nama} berhasil dikirim dan menunggu verifikasi admin.`,
-          isRead: false,
-        },
-        {
-          userId: userMhs2.id,
-          reportId: report2.id,
-          pesan: `Status laporan Anda (#${report2.id.substring(0, 8)}) telah diperbarui menjadi DIPROSES.`,
-          isRead: true,
-        },
-        {
-          userId: userMhs1.id,
-          reportId: report3.id,
-          pesan: `Status laporan Anda (#${report3.id.substring(0, 8)}) telah diperbarui menjadi SELESAI.`,
-          isRead: false,
-        },
-        {
-          userId: userMhs1.id,
-          reportId: report4.id,
-          pesan: `Status laporan Anda (#${report4.id.substring(0, 8)}) telah diperbarui menjadi DITOLAK.`,
-          isRead: false,
-        },
-      ],
-    });
+  // 4. Data Notifikasi Pengguna
+  console.log('5. Menambahkan notifikasi...');
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: userPengguna1.id,
+        reportId: report1.id,
+        pesan: `Laporan kerusakan untuk ${facLab.nama} berhasil dikirim dan menunggu verifikasi admin.`,
+        isRead: false,
+      },
+      {
+        userId: userPengguna2.id,
+        reportId: report2.id,
+        pesan: `Status laporan Anda (#${report2.id.substring(0, 8)}) telah diperbarui menjadi DIPROSES.`,
+        isRead: true,
+      },
+      {
+        userId: userPengguna1.id,
+        reportId: report3.id,
+        pesan: `Status laporan Anda (#${report3.id.substring(0, 8)}) telah diperbarui menjadi SELESAI.`,
+        isRead: false,
+      },
+      {
+        userId: userPengguna3.id,
+        reportId: report4.id,
+        pesan: `Status laporan Anda (#${report4.id.substring(0, 8)}) telah diperbarui menjadi DITOLAK.`,
+        isRead: false,
+      },
+    ],
+  });
 
-    console.log('Seeding Laporan & Notifikasi Berhasil: 4 Laporan & 4 Notifikasi Terpasang');
-  } else {
-    console.log(`Laporan sudah ada (${existingReports.length} laporan ditemukan), melewati pembuatan laporan dummy baru.`);
-  }
-
-  console.log('Seluruh proses seeding data dummy CARES selesai dengan sukses.');
+  console.log('Seluruh proses seeding data CARES berhasil diselesaikan.');
+  console.log('Akun Tersedia:');
+  console.log('- Pelapor: pengguna1@telkomuniversity.ac.id / Password123 (NIM: 1301210001)');
+  console.log('- Pelapor: pengguna2@telkomuniversity.ac.id / Password123 (NIM: 1301210002)');
+  console.log('- Pelapor: pengguna3@telkomuniversity.ac.id / Password123 (NIM: 1301210003)');
+  console.log('- Admin:   admin1@telkomuniversity.ac.id / Admin123');
+  console.log('- Admin:   admin2@telkomuniversity.ac.id / Admin123');
+  console.log('- Admin:   admin3@telkomuniversity.ac.id / Admin123');
 }
 
 main()

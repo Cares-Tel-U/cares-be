@@ -34,12 +34,12 @@ const fileFilter = (
   }
 };
 
-// Middleware multer untuk upload bukti foto (maksimal 5 file, maks 5MB per file)
+// Middleware multer untuk upload bukti foto (maksimal 3 file, maks 5MB per file)
 export const uploadReportPhotos = multer({
   storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5 MB
-    files: 5,
+    files: 3,
   },
   fileFilter,
 });
@@ -59,7 +59,7 @@ export const handleUploadReportPhotos = (req: any, res: any, next: any) => {
         if (err.code === 'LIMIT_FILE_COUNT') {
           return res.status(400).json({
             status: 'error',
-            message: 'Jumlah foto melebihi batas. Maksimal 5 file foto.',
+            message: 'Jumlah foto melebihi batas. Maksimal 3 file foto.',
           });
         }
         return res.status(400).json({
