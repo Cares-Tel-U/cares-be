@@ -154,7 +154,8 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 
     const days = timeframe === 'monthly' ? 30 : 7;
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
 
     const reports = await prisma.report.findMany({
       where: {
@@ -171,10 +172,18 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       trendMap[dateKey] = currentCount + 1;
     });
 
-    const chartData = Object.keys(trendMap).map((date) => ({
-      date,
-      count: trendMap[date] ?? 0,
-    }));
+    // Menghasilkan deret waktu harian lengkap dari startDate hingga hari ini
+    const chartData = [];
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() - i);
+      const dateKey = targetDate.toISOString().slice(0, 10);
+      chartData.push({
+        date: dateKey,
+        count: trendMap[dateKey] ?? 0,
+      });
+    }
 
     return res.status(200).json({
       status: 'success',

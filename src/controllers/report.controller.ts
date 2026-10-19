@@ -20,7 +20,7 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    if (!judul || !deskripsi || !facilityId) {
+    if (!judul || !deskripsi || (!facilityId && !namaRuangan && !namaGedung)) {
       return res.status(400).json({
         status: 'error',
         message: 'Judul, deskripsi, dan fasilitas wajib diisi.',
@@ -28,24 +28,25 @@ export const createReport = async (req: AuthRequest, res: Response) => {
     }
 
     // 1. Validasi / Resolusi Keberadaan Fasilitas
-    let resolvedFacilityId = facilityId ? String(facilityId) : '';
+    let resolvedFacilityId = facilityId ? String(facilityId).trim() : '';
     let facility = resolvedFacilityId
       ? await prisma.facility.findUnique({ where: { id: resolvedFacilityId } })
       : null;
 
-    // Jika fasilitas tidak ditemukan tetapi client mengirim nama gedung / ruangan, buat otomatis
+    // Jika fasilitas tidak ditemukan atau client mengirim nama gedung / ruangan custom, buat atau hubungkan secara otomatis
     if (!facility && (namaRuangan || namaGedung)) {
       const roomName = String(namaRuangan || 'Ruangan Umum').trim();
       const buildingName = String(namaGedung || 'Area Kampus').trim();
 
-      const existingFacility = await prisma.facility.findFirst({
-        where: { nama: roomName, lokasi: buildingName },
+      let existingFacility = await prisma.facility.findFirst({
+        where: {
+          nama: { equals: roomName, mode: 'insensitive' },
+          lokasi: { equals: buildingName, mode: 'insensitive' },
+        },
       });
 
-      if (existingFacility) {
-        facility = existingFacility;
-      } else {
-        facility = await prisma.facility.create({
+      if (!existingFacility) {
+        existingFacility = await prisma.facility.create({
           data: {
             nama: roomName,
             lokasi: buildingName,
@@ -53,6 +54,7 @@ export const createReport = async (req: AuthRequest, res: Response) => {
           },
         });
       }
+      facility = existingFacility;
       resolvedFacilityId = facility.id;
     } else if (!facility) {
       return res.status(404).json({
