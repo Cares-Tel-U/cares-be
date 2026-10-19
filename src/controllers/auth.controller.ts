@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { hashPassword, comparePassword, generateToken } from '../utils/auth';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { sendResetPasswordEmail } from '../utils/mail.util';
 
 const prisma = new PrismaClient();
 
@@ -314,7 +315,52 @@ export const updateNotificationPreference = async (req: AuthRequest, res: Respon
   }
 };
 
-// 6. Forgot Password Request (FR-LOG-03 / Use Case #3)
+// 6. Check Email Existence (Validasi Email Terdaftar)
+export const checkEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Format alamat email tidak valid.',
+        data: { exists: false },
+      });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email: trimmedEmail },
+      select: { id: true, email: true, nama: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Alamat email tidak terdaftar dalam sistem CARES.',
+        data: { exists: false },
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Alamat email terdaftar dalam sistem.',
+      data: {
+        exists: true,
+        email: user.email,
+        nama: user.nama,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal memeriksa ketersediaan email.',
+      error,
+    });
+  }
+};
+
+// 7. Forgot Password Request (FR-LOG-03 / Use Case #3)
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -326,8 +372,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
 
+    const trimmedEmail = String(email).trim().toLowerCase();
     const user = await prisma.user.findUnique({
-      where: { email: String(email).trim().toLowerCase() },
+      where: { email: trimmedEmail },
     });
 
     if (!user) {
@@ -349,13 +396,24 @@ export const forgotPassword = async (req: Request, res: Response) => {
       },
     });
 
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
+
+    // Kirim email pemulihan via Google SMTP
+    await sendResetPasswordEmail({
+      to: user.email,
+      name: user.nama,
+      resetToken,
+      resetLink,
+    });
+
     return res.status(200).json({
       status: 'success',
       message: 'Tautan pemulihan kata sandi telah dikirim ke email terdaftar.',
       data: {
         email: user.email,
         resetToken,
-        resetLink: `/reset-password?token=${resetToken}`,
+        resetLink,
         expiresAt,
       },
     });

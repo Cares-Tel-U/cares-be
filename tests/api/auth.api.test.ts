@@ -343,4 +343,46 @@ describe('Auth API Tests (POST /api/v1/auth/* & /auth/*)', () => {
       expect(res.body.message).toBe('Token reset kata sandi tidak valid atau telah kedaluwarsa.');
     });
   });
+
+  describe('POST /api/v1/auth/check-email', () => {
+    it('should return 200 with exists true if email is registered in db', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'pengguna1@telkomuniversity.ac.id',
+        nama: 'Pengguna Satu',
+      });
+
+      const res = await request(app)
+        .post('/api/v1/auth/check-email')
+        .send({ email: 'pengguna1@telkomuniversity.ac.id' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(res.body.data.exists).toBe(true);
+      expect(res.body.data.email).toBe('pengguna1@telkomuniversity.ac.id');
+    });
+
+    it('should return 404 with exists false if email is not found in db', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      const res = await request(app)
+        .post('/api/v1/auth/check-email')
+        .send({ email: 'unknown@telkomuniversity.ac.id' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.status).toBe('error');
+      expect(res.body.data.exists).toBe(false);
+    });
+
+    it('should return 400 if email format is invalid or missing', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/check-email')
+        .send({ email: 'invalid-email' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.status).toBe('error');
+      expect(res.body.data.exists).toBe(false);
+    });
+  });
 });
+
