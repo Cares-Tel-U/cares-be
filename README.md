@@ -293,5 +293,11 @@ docker compose exec backend npx prisma db seed
 docker compose down
 ```
 
-### 4. Rencana CI/CD Pipeline
-Konfigurasi alur kerja GitHub Actions untuk otomatisasi pengujian unit/integrasi Vitest serta build checking sebelum rilis.
+### 4. Pipeline CI/CD GitHub Actions
+Backend telah dilengkapi pipeline CI otomatis pada `.github/workflows/ci.yml`:
+- **Pemicu Alur Kerja**: Dijalankan otomatis pada setiap `push` dan `pull_request` menuju cabang `main`.
+- **Tahap 1 (Typecheck & Automated Tests)**:
+  - Validasi sintaks dan tipe ketat TypeScript (`npx tsc --noEmit`).
+  - Eksekusi 140 skenario pengujian unit & integrasi API via Vitest (`npm test`).
+- **Tahap 2 (Docker Container Build Verification)**:
+  - Memverifikasi keberhasilan pembuatan image Docker backend pada runner Linux Ubuntu guna memastikan image siap didistribusikan ke registry.
