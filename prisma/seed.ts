@@ -89,6 +89,7 @@ async function main() {
   // 2. Data Master Fasilitas Kampus Telkom University Resmi
   console.log('3. Menambahkan master data fasilitas kampus...');
   const facilitiesData = [
+    // Fasilitas Gedung & Ruangan
     { nama: 'TULT-08-01 (Ruang Kelas Terintegrasi)', lokasi: 'TULT', kategori: KategoriFasilitas.KELAS },
     { nama: 'KU3.02.12 (Ruang Audio Visual)', lokasi: 'Gedung Tokong Nanas', kategori: KategoriFasilitas.KELAS },
     { nama: 'IF2.01.01 (Computing Laboratory)', lokasi: 'Gedung Kultubai Utara', kategori: KategoriFasilitas.LABORATORIUM },
@@ -96,11 +97,35 @@ async function main() {
     { nama: 'Auditorium Cacuk Sudarijanto', lokasi: 'Grha Wiyata Cacuk Sudarijanto', kategori: KategoriFasilitas.LAINNYA },
     { nama: 'Toilet Pria Lt. 1', lokasi: 'Gedung Panambulai', kategori: KategoriFasilitas.TOILET },
     { nama: 'Toilet Wanita Lt. 5', lokasi: 'TULT', kategori: KategoriFasilitas.TOILET },
-    { nama: 'Area Parkir Motor Timur', lokasi: 'Area Parkir Motor Timur', kategori: KategoriFasilitas.PARKIRAN },
-    { nama: 'Kantin Asrama Pusat', lokasi: 'Kantin Asrama Pusat', kategori: KategoriFasilitas.KANTIN },
     { nama: 'Area Baca Tenang Lt. 3', lokasi: 'Open Library', kategori: KategoriFasilitas.LAINNYA },
     { nama: 'Ruang Utama Sholat Lt. 1', lokasi: 'Masjid Syamsul Ulum', kategori: KategoriFasilitas.LAINNYA },
     { nama: 'Lapangan Futsal Indoor', lokasi: 'Sport Center', kategori: KategoriFasilitas.LAINNYA },
+
+    // Fasilitas Area Luar (Outdoor Area) Telkom University
+    { nama: 'Parkir Motor TULT (Landmark Tower)', lokasi: 'Area Parkir', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Parkir Mobil TULT (Landmark Tower)', lokasi: 'Area Parkir', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Parkir Gedung Tokong Nanas (GKU)', lokasi: 'Area Parkir', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Parkir Motor Timur (Dekat Gerbang Timur)', lokasi: 'Area Parkir', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Parkir Gedung Bangkit (Rektorat)', lokasi: 'Area Parkir', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Lapangan Merah (Stadion Sepakbola Utama)', lokasi: 'Sarana Olahraga Terbuka', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Lapangan Basket Outdoor Sport Center', lokasi: 'Sarana Olahraga Terbuka', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Lapangan Basket 3x3 Outdoor (Dekat Student Center)', lokasi: 'Sarana Olahraga Terbuka', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Lapangan Tenis Outdoor (Dekat Student Center & THC)', lokasi: 'Sarana Olahraga Terbuka', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Lapangan Voli Outdoor (Antara Asrama Putra & Putri)', lokasi: 'Sarana Olahraga Terbuka', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Jogging Track Lingkar Danau Situ Techno', lokasi: 'Sarana Olahraga Terbuka', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Situ Techno (Danau Utama / Danau Galau)', lokasi: 'Danau dan Landmark Kampus', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Dermaga dan Jembatan Situ Techno', lokasi: 'Danau dan Landmark Kampus', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Helipad Utama Telkom University (Dekat GKU)', lokasi: 'Danau dan Landmark Kampus', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Tugu Monumen Telkom University', lokasi: 'Danau dan Landmark Kampus', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Gerbang Utama Kampus (Bojongsoang)', lokasi: 'Danau dan Landmark Kampus', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Taman Segitiga Tel-U (Pusat Orientasi Hijau)', lokasi: 'Taman dan Ruang Terbuka Hijau', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Taman Canopy Telkom University', lokasi: 'Taman dan Ruang Terbuka Hijau', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Plaza Terbuka Gedung Damar (Auditorium)', lokasi: 'Taman dan Ruang Terbuka Hijau', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Jalur Pedestrian Boulevard Utama', lokasi: 'Jalan dan Jalur Pedestrian', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Halte Shuttle Bus Kampus Depan TULT', lokasi: 'Jalan dan Jalur Pedestrian', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Koridor Pejalan Kaki Terintegrasi TULT - GKU', lokasi: 'Jalan dan Jalur Pedestrian', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Plaza Terbuka Kantin Asrama Pusat', lokasi: 'Area Komersial dan Kantin Terbuka', kategori: KategoriFasilitas.KANTIN },
+    { nama: 'Kantin Terbuka Lapangan Merah', lokasi: 'Area Komersial dan Kantin Terbuka', kategori: KategoriFasilitas.KANTIN },
   ];
 
   const createdFacilities = [];
