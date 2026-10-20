@@ -150,6 +150,19 @@ describe('Facility API Tests (GET & POST /api/v1/facilities)', () => {
       expect(res.body.message).toBe('Lokasi fasilitas wajib diisi.');
     });
 
+    it('should return 400 if kategori is missing', async () => {
+      const res = await request(app)
+        .post('/api/v1/facilities')
+        .set(getAuthHeaders('sarpras'))
+        .send({
+          nama: 'Gedung B',
+          lokasi: 'Lantai 1',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Kategori fasilitas wajib diisi.');
+    });
+
     it('should return 400 if kategori is invalid', async () => {
       const res = await request(app)
         .post('/api/v1/facilities')

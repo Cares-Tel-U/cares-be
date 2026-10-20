@@ -7,6 +7,49 @@
   },
   "item": [
     {
+      "name": "0. General & Health Check",
+      "item": [
+        {
+          "name": "Health Check & Welcome API (Root /)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{rootUrl}}/",
+              "host": [
+                "{{rootUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Memeriksa status hidup server backend dan melihat link ke dokumentasi Swagger UI."
+          },
+          "response": [
+            {
+              "name": "200 OK - Health Check Berhasil",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{rootUrl}}/",
+                  "host": [
+                    "{{rootUrl}}"
+                  ],
+                  "path": [
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"success\",\n  \"message\": \"Welcome to CARES Backend API!\",\n  \"documentation\": \"/api-docs\",\n  \"version\": \"v1.0.0\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "1. Authentication",
       "item": [
         {
@@ -94,7 +137,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"ambangawi@telkomuniversity.ac.id\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"{{emailMahasiswa}}\",\n  \"password\": \"{{passwordMahasiswa}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -140,7 +183,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@telkomuniversity.ac.id\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"email\": \"{{emailAdmin}}\",\n  \"password\": \"{{passwordAdmin}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -167,7 +210,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"ambangawi@telkomuniversity.ac.id\"\n}"
+              "raw": "{\n  \"email\": \"pengguna1@telkomuniversity.ac.id\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/forgot-password",
@@ -208,6 +251,75 @@
             },
             "description": "Mereset kata sandi akun menggunakan token pemulihan yang diperoleh dari forgot-password."
           }
+        },
+        {
+          "name": "Cek Ketersediaan Email Terdaftar (/auth/check-email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"pengguna1@telkomuniversity.ac.id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/check-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "check-email"
+              ]
+            },
+            "description": "Memvalidasi apakah email civitas terdaftar sebelum mengirim instruksi reset kata sandi."
+          },
+          "response": [
+            {
+              "name": "200 OK - Email Terdaftar",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/auth/check-email",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "check-email"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"success\",\n  \"message\": \"Alamat email terdaftar dalam sistem.\",\n  \"data\": {\n    \"exists\": true,\n    \"email\": \"pengguna1@telkomuniversity.ac.id\",\n    \"nama\": \"Pengguna Satu\"\n  }\n}"
+            },
+            {
+              "name": "404 Not Found - Email Tidak Terdaftar",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/auth/check-email",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "check-email"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"Alamat email tidak terdaftar dalam sistem CARES.\",\n  \"data\": {\n    \"exists\": false\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -417,7 +529,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nama\": \"Laboratorium Cyber Security TULT 0702\",\n  \"lokasi\": \"Gedung TULT Lantai 7\",\n  \"kategori\": \"LABORATORIUM\"\n}"
+              "raw": "{\n  \"nama\": \"TULT-09-05 (Laboratorium Rekayasa Jaringan)\",\n  \"lokasi\": \"Gedung TULT\",\n  \"kategori\": \"LABORATORIUM\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/facilities",
@@ -503,7 +615,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"judul\": \"Kran Wastafel Toilet Patah dan Bocor Deras\",\n  \"deskripsi\": \"Air mengalir deras dari pipa wastafel lantai 1 dan membasahi lantai toilet sehingga licin.\",\n  \"facilityId\": \"{{facilityId}}\",\n  \"isAnonymous\": false,\n  \"photos\": [\n    \"/uploads/kran_bocor_dummy.jpg\"\n  ]\n}"
+              "raw": "{\n  \"judul\": \"AC Bocor dan Mengeluarkan Udara Panas\",\n  \"deskripsi\": \"Unit AC di ruangan TULT-08-01 meneteskan air ke meja mahasiswa dan suhu udara tetap panas selama perkuliahan berlangsung.\",\n  \"facilityId\": \"{{facilityId}}\",\n  \"isAnonymous\": false,\n  \"photos\": [\n    \"/uploads/ac_bocor_dummy.jpg\"\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/reports",
@@ -533,7 +645,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"judul\": \"Lampu Koridor Gedung Redup dan Berkedip\",\n  \"deskripsi\": \"Lampu di lorong depan lift berkedip terus menerus mengganggu kenyamanan.\",\n  \"facilityId\": \"{{facilityId}}\",\n  \"isAnonymous\": true,\n  \"photos\": [\n    \"/uploads/lampu_kedip_dummy.jpg\"\n  ]\n}"
+              "raw": "{\n  \"judul\": \"Kran Air Toilet Patah dan Membanjiri Lantai\",\n  \"deskripsi\": \"Kran wastafel nomor 2 di toilet pria lantai 1 Gedung Panambulai patah sehingga semburan air membanjiri lantai lorong.\",\n  \"facilityId\": \"{{facilityId}}\",\n  \"isAnonymous\": true,\n  \"photos\": [\n    \"/uploads/kran_patah.jpg\"\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/reports",
@@ -882,7 +994,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"SELESAI\"\n}"
+              "raw": "{\n  \"status\": \"SELESAI\",\n  \"catatan\": \"Penggantian unit pipa dan pengisian freon AC telah diselesaikan oleh teknisi sarana prasarana Telkom University.\",\n  \"completionProofs\": [\n    \"/uploads/bukti_selesai_ac.jpg\"\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/reports/{{reportId}}/status",
@@ -915,7 +1027,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"DITOLAK\",\n  \"rejectionReason\": \"Laporan duplikat dengan tiket penanganan teknisi sarpras yang sedang berjalan.\"\n}"
+              "raw": "{\n  \"status\": \"DITOLAK\",\n  \"rejectionReason\": \"Laporan duplikat dengan tiket sarpras nomor LAP-2026-003 yang saat ini sedang dalam proses pengerjaan.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/reports/{{reportId}}/status",

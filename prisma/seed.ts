@@ -86,17 +86,21 @@ async function main() {
 
   console.log('Akun Berhasil Dibuat: 3 Mahasiswa (Pengguna Satu - Tiga) & 3 Admin (Admin Satu - Tiga)');
 
-  // 2. Data Master Fasilitas Kampus Telkom University
+  // 2. Data Master Fasilitas Kampus Telkom University Resmi
   console.log('3. Menambahkan master data fasilitas kampus...');
   const facilitiesData = [
-    { nama: 'Kelas KU 302', lokasi: 'Gedung B Lt. 3', kategori: KategoriFasilitas.KELAS },
-    { nama: 'Kelas TULT 0801', lokasi: 'Gedung TULT Lt. 8', kategori: KategoriFasilitas.KELAS },
-    { nama: 'Lab Komputer IF.01', lokasi: 'Gedung Tokong Nanas Lt. 2', kategori: KategoriFasilitas.LABORATORIUM },
-    { nama: 'Lab IoT & Multimedia', lokasi: 'Gedung A Lt. 2', kategori: KategoriFasilitas.LABORATORIUM },
-    { nama: 'Toilet Pria Utama', lokasi: 'Gedung C Lt. 1', kategori: KategoriFasilitas.TOILET },
-    { nama: 'Toilet Wanita', lokasi: 'Gedung TULT Lt. 5', kategori: KategoriFasilitas.TOILET },
-    { nama: 'Area Parkir Motor Timur', lokasi: 'Kawasan Parkir Timur', kategori: KategoriFasilitas.PARKIRAN },
-    { nama: 'Kantin Asrama Pusat', lokasi: 'Kawasan Kantin Tel-U', kategori: KategoriFasilitas.KANTIN },
+    { nama: 'TULT-08-01 (Ruang Kelas Terintegrasi)', lokasi: 'TULT', kategori: KategoriFasilitas.KELAS },
+    { nama: 'KU3.02.12 (Ruang Audio Visual)', lokasi: 'Gedung Tokong Nanas', kategori: KategoriFasilitas.KELAS },
+    { nama: 'IF2.01.01 (Computing Laboratory)', lokasi: 'Gedung Kultubai Utara', kategori: KategoriFasilitas.LABORATORIUM },
+    { nama: 'Lab Rekayasa Perangkat Lunak (RPL)', lokasi: 'Gedung Kultubai Selatan', kategori: KategoriFasilitas.LABORATORIUM },
+    { nama: 'Auditorium Cacuk Sudarijanto', lokasi: 'Grha Wiyata Cacuk Sudarijanto', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Toilet Pria Lt. 1', lokasi: 'Gedung Panambulai', kategori: KategoriFasilitas.TOILET },
+    { nama: 'Toilet Wanita Lt. 5', lokasi: 'TULT', kategori: KategoriFasilitas.TOILET },
+    { nama: 'Area Parkir Motor Timur', lokasi: 'Area Parkir Motor Timur', kategori: KategoriFasilitas.PARKIRAN },
+    { nama: 'Kantin Asrama Pusat', lokasi: 'Kantin Asrama Pusat', kategori: KategoriFasilitas.KANTIN },
+    { nama: 'Area Baca Tenang Lt. 3', lokasi: 'Open Library', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Ruang Utama Sholat Lt. 1', lokasi: 'Masjid Syamsul Ulum', kategori: KategoriFasilitas.LAINNYA },
+    { nama: 'Lapangan Futsal Indoor', lokasi: 'Sport Center', kategori: KategoriFasilitas.LAINNYA },
   ];
 
   const createdFacilities = [];
@@ -118,7 +122,7 @@ async function main() {
   const report1 = await prisma.report.create({
     data: {
       judul: 'AC Bocor dan Mengeluarkan Suara Bising',
-      deskripsi: 'AC di ruangan Lab Komputer IF.01 meneteskan air ke meja komputer dan suhu ruangan terasa panas.',
+      deskripsi: 'AC di ruangan IF2.01.01 (Computing Laboratory) meneteskan air ke meja komputer dan suhu ruangan terasa panas.',
       status: StatusPelaporan.PENDING,
       facilityId: facLab.id,
       userId: userPengguna1.id,
@@ -133,7 +137,7 @@ async function main() {
   const report2 = await prisma.report.create({
     data: {
       judul: 'Proyektor Mati Total dan Kabel HDMI Rusak',
-      deskripsi: 'Proyektor di ruang kelas TULT 0801 tidak menyala sama sekali saat dihubungkan ke sumber daya listrik.',
+      deskripsi: 'Proyektor di ruang TULT-08-01 (Ruang Kelas Terintegrasi) tidak menyala sama sekali saat dihubungkan ke sumber daya listrik.',
       status: StatusPelaporan.DIPROSES,
       catatan: 'Teknisi perlengkapan audio-visual telah ditugaskan ke lokasi untuk penggantian kabel.',
       facilityId: facKelas.id,

@@ -63,6 +63,22 @@ describe('Admin API Tests (/api/v1/admin/*)', () => {
       expect(res.body.data.length).toBe(1);
     });
 
+    it('should return 200 with pagination when page and limit query parameters are provided', async () => {
+      mockPrisma.report.count.mockResolvedValue(1);
+      mockPrisma.report.findMany.mockResolvedValue([mockReports.pendingReport]);
+
+      const res = await request(app)
+        .get('/api/v1/admin/reports?page=1&limit=10&status=PENDING')
+        .set(getAuthHeaders('sarpras'));
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(res.body.meta).toBeDefined();
+      expect(res.body.meta.page).toBe(1);
+      expect(res.body.meta.per_page).toBe(10);
+      expect(res.body.meta.total).toBe(1);
+    });
+
     it('should return 403 Forbidden when accessed by MAHASISWA', async () => {
       const res = await request(app)
         .get('/api/v1/admin/reports')
@@ -217,6 +233,19 @@ describe('Admin API Tests (/api/v1/admin/*)', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('Alasan penolakan wajib diisi');
+    });
+
+    it('should return 400 if bulk status is not a valid status', async () => {
+      const res = await request(app)
+        .patch('/api/v1/admin/reports/bulk-status')
+        .set(getAuthHeaders('sarpras'))
+        .send({
+          reportIds: ['rep-1'],
+          status: 'STATUS_TIDAK_VALID',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Status laporan tidak valid.');
     });
   });
 

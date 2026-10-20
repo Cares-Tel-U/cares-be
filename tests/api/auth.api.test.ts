@@ -329,6 +329,18 @@ describe('Auth API Tests (POST /api/v1/auth/* & /auth/*)', () => {
       expect(res.body.message).toBe('Kata sandi baru minimal 8 karakter.');
     });
 
+    it('should return 400 if newPassword does not meet complexity requirements (uppercase/lowercase/number)', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/reset-password')
+        .send({
+          token: 'some-token',
+          newPassword: 'onlylowercasepassword',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Kata sandi baru minimal 8 karakter dan wajib mengandung kombinasi');
+    });
+
     it('should return 400 if reset token is invalid or expired', async () => {
       mockPrisma.user.findFirst.mockResolvedValue(null);
 

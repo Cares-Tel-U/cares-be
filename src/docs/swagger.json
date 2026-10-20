@@ -68,17 +68,17 @@
         "properties": {
           "nama": {
             "type": "string",
-            "example": "Bintang Ridwan Pribadi"
+            "example": "Mahasiswa Baru Telkom University"
           },
           "email": {
             "type": "string",
             "format": "email",
-            "example": "bintang@telkomuniversity.ac.id"
+            "example": "pengguna.baru@telkomuniversity.ac.id"
           },
           "password": {
             "type": "string",
             "format": "password",
-            "example": "password123"
+            "example": "Password123"
           },
           "role": {
             "type": "string",
@@ -103,12 +103,12 @@
           "email": {
             "type": "string",
             "format": "email",
-            "example": "ambangawi@telkomuniversity.ac.id"
+            "example": "pengguna1@telkomuniversity.ac.id"
           },
           "password": {
             "type": "string",
             "format": "password",
-            "example": "password123"
+            "example": "Password123"
           }
         }
       },
@@ -464,10 +464,96 @@
             "example": "Laporan duplikat atau tidak memenuhi syarat."
           }
         }
+      },
+      "HealthCheckResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Welcome to CARES Backend API!"
+          },
+          "documentation": {
+            "type": "string",
+            "example": "/api-docs"
+          },
+          "version": {
+            "type": "string",
+            "example": "v1.0.0"
+          }
+        }
+      },
+      "CheckEmailRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "pengguna1@telkomuniversity.ac.id",
+            "description": "Alamat email civitas akademika Telkom University yang akan diverifikasi"
+          }
+        }
+      },
+      "CheckEmailResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Alamat email terdaftar dalam sistem."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "exists": {
+                "type": "boolean",
+                "example": true
+              },
+              "email": {
+                "type": "string",
+                "example": "pengguna1@telkomuniversity.ac.id"
+              },
+              "nama": {
+                "type": "string",
+                "example": "Pengguna Satu"
+              }
+            }
+          }
+        }
       }
     }
   },
   "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "General"
+        ],
+        "summary": "Health Check & Informasi Layanan API",
+        "description": "Memeriksa status aktif server backend CARES dan menyajikan rute dokumentasi interaktif Swagger UI.",
+        "responses": {
+          "200": {
+            "description": "Layanan API aktif dan beroperasi normal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/register": {
       "post": {
         "tags": [
@@ -594,6 +680,81 @@
           },
           "500": {
             "description": "Terjadi kesalahan pada internal server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/check-email": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Pemeriksaan Ketersediaan Email Terdaftar",
+        "description": "Memeriksa apakah alamat email civitas akademika telah terdaftar dalam sistem CARES. Endpoint ini digunakan untuk validasi sebelum lupa password maupun pencegahan duplikasi pendaftaran.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckEmailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alamat email terdaftar dalam sistem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckEmailResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Format alamat email tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": "error",
+                  "message": "Format alamat email tidak valid.",
+                  "data": {
+                    "exists": false
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Alamat email tidak terdaftar dalam sistem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": "error",
+                  "message": "Alamat email tidak terdaftar dalam sistem CARES.",
+                  "data": {
+                    "exists": false
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Terjadi kesalahan pada internal server",
             "content": {
               "application/json": {
                 "schema": {
@@ -758,9 +919,6 @@
           "400": {
             "description": "Field input tidak lengkap atau kategori tidak valid"
           },
-          "403": {
-            "description": "Akses ditolak (khusus Admin / Sarpras)"
-          },
           "401": {
             "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
             "content": {
@@ -770,6 +928,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Akses ditolak (khusus Admin / Sarpras)"
           },
           "500": {
             "description": "Terjadi kesalahan pada internal server.",
@@ -1195,8 +1356,8 @@
               }
             }
           },
-          "403": {
-            "description": "Akses ditolak (Khusus role SARPRAS)",
+          "401": {
+            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1205,8 +1366,8 @@
               }
             }
           },
-          "401": {
-            "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
+          "403": {
+            "description": "Akses ditolak (Khusus role SARPRAS)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1295,9 +1456,6 @@
               }
             }
           },
-          "403": {
-            "description": "Akses ditolak (Khusus role SARPRAS)"
-          },
           "401": {
             "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
             "content": {
@@ -1307,6 +1465,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Akses ditolak (Khusus role SARPRAS)"
           },
           "500": {
             "description": "Terjadi kesalahan pada internal server.",
@@ -1902,9 +2063,6 @@
           "400": {
             "description": "Array reportIds kosong atau status tidak valid"
           },
-          "403": {
-            "description": "Akses ditolak (khusus Admin / Sarpras)"
-          },
           "401": {
             "description": "Akses ditolak. Token autentikasi JWT tidak disertakan atau tidak valid.",
             "content": {
@@ -1914,6 +2072,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Akses ditolak (khusus Admin / Sarpras)"
           },
           "500": {
             "description": "Terjadi kesalahan pada internal server.",
@@ -2080,6 +2241,10 @@
     }
   },
   "tags": [
+    {
+      "name": "General",
+      "description": "Endpoint pemeriksaan kesehatan server (Health Check) dan informasi versi API"
+    },
     {
       "name": "Authentication",
       "description": "Layanan registrasi akun, login civitas, dan alur pemulihan kata sandi (Forgot & Reset Password)"

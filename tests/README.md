@@ -14,7 +14,7 @@ Pengujian dibangun menggunakan standar industri modern untuk TypeScript & Expres
 
 Keunggulan arsitektur ini:
 1. **Keamanan Data**: Pengujian berjalan sepenuhnya terisolasi dan **TIDAK PERNAH** memodifikasi, menghapus, atau menghubungkan ke basis data produksi/development.
-2. **Kecepatan Tinggi**: Seluruh 91+ skenario pengujian berjalan selesai dalam kurun waktu kurang dari 4 detik.
+2. **Kecepatan Tinggi**: Seluruh 131+ skenario pengujian berjalan selesai dalam kurun waktu kurang dari 2 detik.
 3. **Deterministik**: Dapat dieksekusi secara konsisten di mesin lokal maupun pipeline CI/CD tanpa perlu dependensi PostgreSQL server yang menyala.
 
 ---
@@ -26,18 +26,23 @@ backend/
 ├── tests/
 │   ├── unit/                     # Pengujian unit logic terisolasi
 │   │   ├── utils/
-│   │   │   └── auth.util.test.ts # Hash password, compare, generate/verify JWT
+│   │   │   ├── auth.util.test.ts         # Hash password, compare, generate/verify JWT
+│   │   │   ├── mail.util.test.ts         # Transporter SMTP, HTML template, simulation
+│   │   │   ├── notification.util.test.ts # Pembuatan notifikasi & error handling
+│   │   │   └── prisma.util.test.ts       # Validasi instansiasi Prisma Client
 │   │   ├── middlewares/
 │   │   │   ├── auth.middleware.test.ts     # authenticateToken & adminMiddleware
+│   │   │   ├── upload.middleware.test.ts   # Multer fileFilter, size limit, error handler
 │   │   │   └── validate.middleware.test.ts # Zod schema validation
 │   │   └── services/
 │   │       └── auth.service.test.ts        # AuthService register & login
 │   ├── api/                      # Pengujian RESTful HTTP API (Supertest)
-│   │   ├── auth.api.test.ts      # Register, login, forgot & reset password
+│   │   ├── root.api.test.ts      # Health check, metadata API, dan Swagger UI docs
+│   │   ├── auth.api.test.ts      # Register, login, forgot & reset password, complexity
 │   │   ├── user.api.test.ts      # Get profile, update avatar, notification prefs
-│   │   ├── facility.api.test.ts  # Get facilities (publik) & create (admin)
-│   │   ├── report.api.test.ts    # Create report, duplicate check, feeds, privacy
-│   │   ├── admin.api.test.ts     # Admin reports queue, status & bulk update, stats
+│   │   ├── facility.api.test.ts  # Get facilities (publik), create (admin), validasi
+│   │   ├── report.api.test.ts    # Create report, dynamic facility, duplicate check, feeds
+│   │   ├── admin.api.test.ts     # Admin reports queue, pagination, bulk update, stats
 │   │   └── notification.api.test.ts # User notifications & read status
 │   ├── fixtures/                 # Data tiruan deterministik (Users, Facilities, Reports)
 │   │   ├── users.fixture.ts

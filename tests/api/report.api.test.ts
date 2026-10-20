@@ -135,6 +135,43 @@ describe('Report API Tests (/api/v1/reports/*)', () => {
       expect(res.body.message).toBe('Fasilitas tidak ditemukan.');
     });
 
+    it('should dynamically find or create facility when namaGedung and namaRuangan are provided without facilityId', async () => {
+      mockPrisma.facility.findFirst.mockResolvedValue(null);
+      mockPrisma.facility.create.mockResolvedValue({
+        id: 'new-dynamic-facility',
+        nama: 'Ruang 101',
+        lokasi: 'Gedung TULT',
+        kategori: 'LAINNYA',
+      });
+      mockPrisma.report.findFirst.mockResolvedValue(null);
+      mockPrisma.report.count.mockResolvedValue(0);
+      mockPrisma.report.create.mockResolvedValue({
+        ...mockReports.pendingReport,
+        facilityId: 'new-dynamic-facility',
+      });
+      mockPrisma.notification.create.mockResolvedValue({});
+
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Proyektor Buram',
+          deskripsi: 'Proyektor tidak fokus di kelas',
+          namaGedung: 'Gedung TULT',
+          namaRuangan: 'Ruang 101',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.status).toBe('success');
+      expect(mockPrisma.facility.create).toHaveBeenCalledWith({
+        data: {
+          nama: 'Ruang 101',
+          lokasi: 'Gedung TULT',
+          kategori: 'LAINNYA',
+        },
+      });
+    });
+
     it('should return 400 when facility already has an active report (PENDING / DIPROSES)', async () => {
       mockPrisma.facility.findUnique.mockResolvedValue(mockFacilities.kelas);
       mockPrisma.report.findFirst.mockResolvedValue(mockReports.pendingReport);
