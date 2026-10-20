@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { hashPassword, comparePassword, generateToken } from '../utils/auth';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendResetPasswordEmail } from '../utils/mail.util';
+import { uploadFileToStorage, uploadBase64ToStorage } from '../services/cloudinary.service';
 
 const prisma = new PrismaClient();
 
@@ -13,18 +14,12 @@ export const register = async (req: Request, res: Response) => {
 
     // Validasi Panjang Nama (2 - 50 karakter)
     if (!nama || typeof nama !== 'string' || nama.trim().length < 2 || nama.trim().length > 50) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Nama lengkap wajib memiliki panjang antara 2 hingga 50 karakter.',
-      });
+      return res.status(400).json({ status: 'error', message: 'Nama lengkap wajib memiliki panjang antara 2 hingga 50 karakter.' });
     }
 
     // Validasi Alamat Email
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Format alamat email tidak valid.',
-      });
+      return res.status(400).json({ status: 'error', message: 'Format alamat email tidak valid.' });
     }
 
     // Cek apakah email sudah terdaftar
@@ -32,13 +27,10 @@ export const register = async (req: Request, res: Response) => {
       where: { email: String(email).trim().toLowerCase() },
     });
     if (existingUser) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email sudah terdaftar.',
-      });
+      return res.status(400).json({ status: 'error', message: 'Email sudah terdaftar.' });
     }
 
-    // Validasi Format Password: Minimal 8 karakter, mengandung lowercase, uppercase, dan number
+    // Validasi Format Password
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!password || !passwordRegex.test(String(password))) {
       return res.status(400).json({
@@ -229,7 +221,11 @@ export const updateAvatar = async (req: AuthRequest, res: Response) => {
     let avatarUrl = req.body?.avatarUrl || req.body?.avatar;
 
     if (req.file) {
-      avatarUrl = `/uploads/${req.file.filename}`;
+      const uploadResult = await uploadFileToStorage(req.file.path, 'cares-avatars');
+      avatarUrl = uploadResult.url;
+    } else if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('data:image/')) {
+      const uploadResult = await uploadBase64ToStorage(avatarUrl, undefined, 'cares-avatars');
+      avatarUrl = uploadResult.url;
     }
 
     if (!avatarUrl || typeof avatarUrl !== 'string' || !avatarUrl.trim()) {

@@ -234,7 +234,7 @@ Tersedia berkas koleksi resmi dan environment pada direktori `postman/`:
 
 ## Rangkaian Pengujian Otomatis (Vitest)
 
-Backend dilengkapi dengan rangkaian pengujian komprehensif mencakup 15 berkas uji dan 131 test case dengan hasil 100% lulus:
+Backend dilengkapi dengan rangkaian pengujian komprehensif mencakup 16 berkas uji dan 140 test case dengan hasil 100% lulus:
 
 ```bash
 # Menjalankan seluruh pengujian unit dan integrasi
@@ -260,9 +260,12 @@ npm run test:coverage
 - [ ] Ganti `JWT_SECRET` dengan string acak dengan entropi tinggi (minimal 64 karakter).
 - [ ] Konfigurasi kredensial SMTP resmi kampus untuk pengiriman email pemulihan akun.
 - [ ] Konfigurasi URL `CLIENT_URL` dengan domain web frontend resmi guna mencegah celah CORS.
+- [ ] Isi kredensial `CLOUDINARY_*` agar berkas foto bukti kerusakan tersimpan secara persisten di Cloud Storage.
 
-### 2. Rencana Integrasi Cloud Storage (Cloudinary / AWS S3)
-Untuk deployment lingkungan tanpa disk persisten (seperti Heroku, Render, atau container serverless), disarankan mengalihkan penyimpanan lokal `uploads/` ke penyedia object storage cloud (misalnya Cloudinary atau AWS S3) agar berkas foto bukti kerusakan tetap tersimpan permanen.
+### 2. Integrasi Cloud Storage (Cloudinary & Local Fallback)
+Backend telah terintegrasi penuh dengan pustaka `cloudinary` melalui arsitektur dual-mode:
+- **Mode Cloudinary (Produksi / Cloud)**: Jika variabel `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, dan `CLOUDINARY_API_SECRET` diisi, berkas foto bukti kerusakan dan avatar akan diunggah langsung ke Cloudinary dan menghasilkan URL permanen (`https://res.cloudinary.com/...`). Berkas sementara di lokal akan langsung dibersihkan secara otomatis.
+- **Mode Local Fallback (Development Offline)**: Jika variabel Cloudinary tidak diisi, backend secara transparan beralih menyimpan foto ke folder lokal `uploads/` (`/uploads/...`) sehingga pengembang lokal maupun test runner dapat berjalan tanpa koneksi internet.
 
 ### 3. Rencana Kontainerisasi Docker & CI/CD
 Siapkan berkas `Dockerfile` dan konfigurasi pipeline GitHub Actions untuk otomatisasi pengujian (*automated testing*) dan penyebaran berkas (*continuous deployment*) ke server target.

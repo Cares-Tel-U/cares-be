@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createNotification } from '../utils/notification.util';
+import { uploadFileToStorage, uploadBase64ToStorage } from '../services/cloudinary.service';
 
 const prisma = new PrismaClient();
 
@@ -97,16 +98,13 @@ export const createReport = async (req: AuthRequest, res: Response) => {
 
     // 4. Kumpulkan URL Foto Bukti dari Files (Multer) maupun Body Payload
     const photoUrls: string[] = [];
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
 
-    // Dari file fisik yang diunggah via Multer
+    // Dari file fisik yang diunggah via Multer (disimpan ke Cloudinary atau disk lokal)
     if (req.files && Array.isArray(req.files)) {
-      req.files.forEach((file: Express.Multer.File) => {
-        photoUrls.push(`/uploads/${file.filename}`);
-      });
+      for (const file of req.files as Express.Multer.File[]) {
+        const uploadResult = await uploadFileToStorage(file.path);
+        photoUrls.push(uploadResult.url);
+      }
     }
 
     // Dari payload body (jika mengirim photos atau foto berupa URL/Array atau base64)
@@ -142,19 +140,10 @@ export const createReport = async (req: AuthRequest, res: Response) => {
         });
       }
 
-      // Jika data base64 image: simpan ke file fisik di disk
+      // Jika data base64 image: unggah ke Cloudinary atau simpan buffer ke disk lokal
       if (item.startsWith('data:image/')) {
-        const matches = item.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
-        if (matches && matches[2]) {
-          const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
-          const filename = `report-${Date.now()}-${Math.round(Math.random() * 1e9)}.${ext}`;
-          const filePath = path.join(uploadDir, filename);
-          const buffer = Buffer.from(matches[2], 'base64');
-          fs.writeFileSync(filePath, buffer);
-          photoUrls.push(`/uploads/${filename}`);
-        } else {
-          photoUrls.push(item);
-        }
+        const uploadResult = await uploadBase64ToStorage(item);
+        photoUrls.push(uploadResult.url);
       } else {
         photoUrls.push(item);
       }
