@@ -267,5 +267,31 @@ Backend telah terintegrasi penuh dengan pustaka `cloudinary` melalui arsitektur 
 - **Mode Cloudinary (Produksi / Cloud)**: Jika variabel `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, dan `CLOUDINARY_API_SECRET` diisi, berkas foto bukti kerusakan dan avatar akan diunggah langsung ke Cloudinary dan menghasilkan URL permanen (`https://res.cloudinary.com/...`). Berkas sementara di lokal akan langsung dibersihkan secara otomatis.
 - **Mode Local Fallback (Development Offline)**: Jika variabel Cloudinary tidak diisi, backend secara transparan beralih menyimpan foto ke folder lokal `uploads/` (`/uploads/...`) sehingga pengembang lokal maupun test runner dapat berjalan tanpa koneksi internet.
 
-### 3. Rencana Kontainerisasi Docker & CI/CD
-Siapkan berkas `Dockerfile` dan konfigurasi pipeline GitHub Actions untuk otomatisasi pengujian (*automated testing*) dan penyebaran berkas (*continuous deployment*) ke server target.
+### 3. Kontainerisasi Docker & Orkestrasi
+Backend telah dilengkapi dengan `Dockerfile` multi-stage berbasis Linux Alpine yang aman (non-root user `caresuser`):
+```bash
+# Membangun image Docker backend secara mandiri
+docker build -t cares-backend:latest .
+
+# Menjalankan kontainer backend pada port 5001
+docker run -d -p 5001:5001 --name cares-backend \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/cares_db" \
+  -e JWT_SECRET="your_jwt_secret" \
+  cares-backend:latest
+```
+
+Untuk menjalankan ekosistem lengkap (Frontend + Backend + PostgreSQL Database) secara terisolasi, gunakan `docker-compose.yml` pada root workspace:
+```bash
+# Menjalankan seluruh layanan dalam satu perintah
+docker compose up --build -d
+
+# Menjalankan migrasi skema dan seed data di dalam kontainer backend
+docker compose exec backend npx prisma db push
+docker compose exec backend npx prisma db seed
+
+# Menghentikan seluruh kontainer
+docker compose down
+```
+
+### 4. Rencana CI/CD Pipeline
+Konfigurasi alur kerja GitHub Actions untuk otomatisasi pengujian unit/integrasi Vitest serta build checking sebelum rilis.
