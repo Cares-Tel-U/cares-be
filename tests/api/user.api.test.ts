@@ -105,13 +105,90 @@ describe('User API Tests (GET /api/v1/users/me & PATCH /api/v1/users/*)', () => 
         avatar: '/uploads/report-fake.png',
       });
 
+      const validBuffer = Buffer.alloc(6 * 1024, 'a'); // 6 KB
+
       const res = await request(app)
         .patch('/api/v1/users/avatar')
         .set(getAuthHeaders('mahasiswa'))
-        .attach('avatar', Buffer.from('fake image content'), {
+        .attach('avatar', validBuffer, {
           filename: 'avatar.png',
           contentType: 'image/png',
         });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(mockPrisma.user.update).toHaveBeenCalled();
+    });
+
+    it('should return 400 when uploaded avatar file is smaller than 5 KB', async () => {
+      const tinyBuffer = Buffer.from('tiny photo content'); // Kurang dari 5 KB
+
+      const res = await request(app)
+        .patch('/api/v1/users/avatar')
+        .set(getAuthHeaders('mahasiswa'))
+        .attach('avatar', tinyBuffer, {
+          filename: 'small-avatar.png',
+          contentType: 'image/png',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toContain('Ukuran foto avatar terlalu kecil. Minimal 5 KB.');
+    });
+
+    it('should return 400 when uploaded avatar file has unsupported format', async () => {
+      const textBuffer = Buffer.alloc(6 * 1024, 't');
+
+      const res = await request(app)
+        .patch('/api/v1/users/avatar')
+        .set(getAuthHeaders('mahasiswa'))
+        .attach('avatar', textBuffer, {
+          filename: 'not-image.txt',
+          contentType: 'text/plain',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.status).toBe('error');
+    });
+
+    it('should return 400 when base64 avatar data is smaller than 5 KB', async () => {
+      const tinyBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+      const res = await request(app)
+        .patch('/api/v1/users/avatar')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({ avatarUrl: tinyBase64 });
+
+      expect(res.status).toBe(400);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toContain('Ukuran foto avatar terlalu kecil. Minimal 5 KB.');
+    });
+
+    it('should return 400 when base64 avatar has unsupported format (such as SVG)', async () => {
+      const svgBase64 = `data:image/svg+xml;base64,${Buffer.alloc(6 * 1024, 's').toString('base64')}`;
+
+      const res = await request(app)
+        .patch('/api/v1/users/avatar')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({ avatarUrl: svgBase64 });
+
+      expect(res.status).toBe(400);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toContain('Format file foto avatar tidak didukung');
+    });
+
+    it('should update avatar via valid base64 data URL', async () => {
+      mockPrisma.user.update.mockResolvedValue({
+        ...mockUsers.mahasiswa,
+        avatar: '/uploads/report-fake.png',
+      });
+
+      const validPngBase64 = `data:image/png;base64,${Buffer.alloc(6 * 1024, 'a').toString('base64')}`;
+
+      const res = await request(app)
+        .patch('/api/v1/users/avatar')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({ avatarUrl: validPngBase64 });
 
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('success');

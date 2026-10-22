@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createNotification } from '../utils/notification.util';
+import { broadcastRealtimeEvent } from '../utils/realtime.util';
 import { uploadFileToStorage, uploadBase64ToStorage } from '../services/cloudinary.service';
 
 const prisma = new PrismaClient();
@@ -204,6 +205,20 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       report.id,
       `Laporan kerusakan untuk ${facility.nama} berhasil dikirim dan menunggu verifikasi admin.`
     );
+
+    try {
+      broadcastRealtimeEvent({
+        type: 'REPORT_CREATED',
+        data: {
+          reportId: report.id,
+          facilityId: report.facilityId,
+          status: report.status,
+          userId: report.userId,
+        },
+      });
+    } catch {
+      // Penyiaran realtime tidak menggagalkan response
+    }
 
     return res.status(201).json({
       status: 'success',

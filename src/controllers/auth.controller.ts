@@ -4,6 +4,7 @@ import { hashPassword, comparePassword, generateToken } from '../utils/auth';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendResetPasswordEmail } from '../utils/mail.util';
 import { uploadFileToStorage, uploadBase64ToStorage } from '../services/cloudinary.service';
+import { broadcastRealtimeEvent } from '../utils/realtime.util';
 
 const prisma = new PrismaClient();
 
@@ -218,12 +219,45 @@ export const updateAvatar = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const MIN_AVATAR_SIZE = 5 * 1024; // 5 KB
+    const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5 MB
     let avatarUrl = req.body?.avatarUrl || req.body?.avatar;
 
     if (req.file) {
+      if (req.file.size < MIN_AVATAR_SIZE) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Ukuran foto avatar terlalu kecil. Minimal 5 KB.',
+        });
+      }
       const uploadResult = await uploadFileToStorage(req.file.path, 'cares-avatars');
       avatarUrl = uploadResult.url;
     } else if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('data:image/')) {
+      const isAllowedMime = /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(avatarUrl);
+      if (!isAllowedMime) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Format file foto avatar tidak didukung. Gunakan format JPG, PNG, atau WEBP.',
+        });
+      }
+
+      const base64Data = avatarUrl.split(',')[1] || '';
+      const estimatedByteSize = Math.ceil((base64Data.length * 3) / 4);
+
+      if (estimatedByteSize < MIN_AVATAR_SIZE) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Ukuran foto avatar terlalu kecil. Minimal 5 KB.',
+        });
+      }
+
+      if (estimatedByteSize > MAX_AVATAR_SIZE) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Ukuran foto avatar terlalu besar. Maksimal 5 MB.',
+        });
+      }
+
       const uploadResult = await uploadBase64ToStorage(avatarUrl, undefined, 'cares-avatars');
       avatarUrl = uploadResult.url;
     }
@@ -248,6 +282,19 @@ export const updateAvatar = async (req: AuthRequest, res: Response) => {
         updatedAt: true,
       },
     });
+
+    try {
+      broadcastRealtimeEvent({
+        type: 'USER_AVATAR_CHANGED',
+        data: {
+          userId: updatedUser.id,
+          avatar: updatedUser.avatar,
+          user: updatedUser,
+        },
+      });
+    } catch {
+      // Penyiaran realtime tidak menggagalkan response
+    }
 
     return res.status(200).json({
       status: 'success',
@@ -296,6 +343,15 @@ export const updateNotificationPreference = async (req: AuthRequest, res: Respon
         notificationPreference: true,
       },
     });
+
+    try {
+      broadcastRealtimeEvent({
+        type: 'NOTIFICATION_PREFERENCE_CHANGED',
+        data: { userId, enabled },
+      });
+    } catch {
+      // Penyiaran realtime tidak menggagalkan response
+    }
 
     return res.status(200).json({
       status: 'success',

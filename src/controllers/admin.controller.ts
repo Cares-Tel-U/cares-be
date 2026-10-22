@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createNotification } from '../utils/notification.util';
+import { broadcastRealtimeEvent } from '../utils/realtime.util';
 import { uploadFileToStorage, uploadBase64ToStorage } from '../services/cloudinary.service';
 
 const prisma = new PrismaClient();
@@ -214,6 +215,19 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
     const pesanNotif = `Status laporan Anda (#${updatedReport.id.substring(0, 8)}) telah diperbarui menjadi ${status}.`;
     await createNotification(updatedReport.userId, updatedReport.id, pesanNotif);
 
+    try {
+      broadcastRealtimeEvent({
+        type: 'REPORT_STATUS_CHANGED',
+        data: {
+          reportId: updatedReport.id,
+          userId: updatedReport.userId,
+          status: updatedReport.status,
+        },
+      });
+    } catch {
+      // Penyiaran realtime tidak menggagalkan response
+    }
+
     return res.status(200).json({
       status: 'success',
       message: `Status laporan berhasil diperbarui menjadi ${status}`,
@@ -346,6 +360,18 @@ export const updateReportsBulkStatus = async (req: AuthRequest, res: Response) =
     for (const report of affectedReports) {
       const pesanNotif = `Status laporan Anda (#${report.id.substring(0, 8)}) telah diperbarui menjadi ${status}.`;
       await createNotification(report.userId, report.id, pesanNotif);
+    }
+
+    try {
+      broadcastRealtimeEvent({
+        type: 'REPORT_STATUS_CHANGED',
+        data: {
+          reportIds: validIds,
+          status,
+        },
+      });
+    } catch {
+      // Penyiaran realtime tidak menggagalkan response
     }
 
     return res.status(200).json({

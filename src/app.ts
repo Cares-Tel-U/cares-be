@@ -11,6 +11,7 @@ import facilityRoutes from './routes/facility.routes';
 import reportRoutes from './routes/report.routes';
 import adminRoutes from './routes/admin.routes';
 import notificationRoutes from './routes/notification.routes';
+import realtimeRoutes from './routes/realtime.routes';
 
 const app = express();
 
@@ -71,6 +72,7 @@ v1Router.use('/facilities', facilityRoutes);
 v1Router.use('/reports', reportRoutes);
 v1Router.use('/admin', adminRoutes);
 v1Router.use('/notifications', notificationRoutes);
+v1Router.use('/realtime', realtimeRoutes);
 
 // Daftarkan rute standar versioning
 app.use('/api/v1', v1Router);
@@ -83,5 +85,6 @@ app.use('/facilities', facilityRoutes);
 app.use('/reports', reportRoutes);
 app.use('/admin', adminRoutes);
 app.use('/notifications', notificationRoutes);
+app.use('/realtime', realtimeRoutes);
 
 export default app;

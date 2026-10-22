@@ -96,6 +96,24 @@ export const handleUploadAvatar = (req: any, res: any, next: any) => {
         message: err.message || 'Format file foto avatar tidak didukung.',
       });
     }
+
+    if (req.file) {
+      const MIN_AVATAR_SIZE = 5 * 1024; // 5 KB
+      if (req.file.size < MIN_AVATAR_SIZE) {
+        try {
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+        } catch {
+          // Abaikan kesalahan penghapusan sementara
+        }
+        return res.status(400).json({
+          status: 'error',
+          message: 'Ukuran foto avatar terlalu kecil. Minimal 5 KB.',
+        });
+      }
+    }
+
     next();
   });
 };
