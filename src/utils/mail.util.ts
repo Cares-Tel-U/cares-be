@@ -1,3 +1,9 @@
+import dns from 'dns';
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch {
+  // Abaikan jika tidak didukung versi node lama
+}
 import nodemailer from 'nodemailer';
 
 interface SendResetEmailParams {
@@ -18,16 +24,6 @@ export const createEmailTransporter = () => {
     return null;
   }
 
-  if (host.includes('gmail.com')) {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user,
-        pass,
-      },
-    });
-  }
-
   return nodemailer.createTransport({
     host,
     port,
@@ -35,6 +31,9 @@ export const createEmailTransporter = () => {
     auth: {
       user,
       pass,
+    },
+    tls: {
+      rejectUnauthorized: false,
     },
   });
 };
@@ -128,40 +127,82 @@ export const generateResetEmailHtml = (name: string, resetLink: string): string 
   `.trim();
 };
 
+/**
+ * Memeriksa apakah alamat surel merupakan email dummy/seeder/pengujian
+ * agar tidak dikirimkan ke server SMTP riil yang menyebabkan bounce-back spam.
+ */
+export const isMockOrDummyEmail = (email: string): boolean => {
+  if (!email) return true;
+  const lower = email.toLowerCase().trim();
+  const dummyList = [
+    'pengguna1@telkomuniversity.ac.id',
+    'pengguna2@telkomuniversity.ac.id',
+    'admin1@telkomuniversity.ac.id',
+    'aseleb@gmail.com',
+    'technickrat11@gmail.com',
+    'dummy@telkomuniversity.ac.id',
+    'test@telkomuniversity.ac.id',
+  ];
+
+  if (dummyList.includes(lower)) return true;
+  if (lower.startsWith('mhs.') || lower.startsWith('dummy') || lower.endsWith('.test') || lower.endsWith('.example')) {
+    return true;
+  }
+  return false;
+};
+
 export const sendResetPasswordEmail = async ({
   to,
   name,
   resetToken,
   resetLink,
 }: SendResetEmailParams): Promise<{ success: boolean; mocked?: boolean; error?: string }> => {
+  const isDummy = isMockOrDummyEmail(to);
+  const isSmtpDisabled = process.env.SMTP_ENABLED === 'false';
   const transporter = createEmailTransporter();
-  const htmlContent = generateResetEmailHtml(name, resetLink);
   const sender = process.env.SMTP_FROM || 'CARES Telkom University <no-reply@telkomuniversity.ac.id>';
 
-  if (!transporter) {
-    // Mode pengembangan / kredensial belum diisi
+  if (!transporter || isSmtpDisabled) {
+    // Mode pengembangan / simulasi pengujian tanpa kredensial SMTP
     console.log('====================================================');
-    console.log('[EMAIL SERVICE - SIMULASI GMAIL / GOOGLE]');
+    console.log('[EMAIL SERVICE - SIMULASI CONSOLE]');
     console.log(`Kepada: ${to} (${name})`);
     console.log(`Tautan Reset: ${resetLink}`);
     console.log(`Token Reset: ${resetToken}`);
-    console.log('Catatan: SMTP_USER dan SMTP_PASS belum diset di .env.');
+    if (isSmtpDisabled) {
+      console.log('Catatan: SMTP_ENABLED bernilai false di .env.');
+    } else {
+      console.log('Catatan: SMTP_USER dan SMTP_PASS belum diset di .env.');
+    }
     console.log('====================================================');
     return { success: true, mocked: true };
   }
 
+  // Jika akun adalah email dummy/seeder (misal pengguna1@telkomuniversity.ac.id yang belum terdaftar di mailbox fisik Telkom),
+  // teruskan pengiriman email ke alamat tester/admin (process.env.SMTP_USER) agar developer tetap menerima email dan tidak terpental (bounce-back).
+  // Jika akun adalah email riil (misal bintangridwan30@gmail.com atau email pengguna yang didaftarkan), kirimkan langsung ke alamat asli.
+  const targetRecipient = isDummy && process.env.SMTP_USER ? process.env.SMTP_USER : to;
+  const subject = isDummy
+    ? `[CARES DEV] Reset Kata Sandi Akun ${to}`
+    : 'Instruksi Pengaturan Ulang Kata Sandi Akun CARES';
+  const htmlContent = generateResetEmailHtml(name, resetLink);
+
   try {
     await transporter.sendMail({
       from: sender,
-      to,
-      subject: 'Instruksi Pengaturan Ulang Kata Sandi Akun CARES',
+      to: targetRecipient,
+      subject,
       html: htmlContent,
     });
-    console.log(`[EMAIL SERVICE] Email pemulihan kata sandi berhasil dikirim ke: ${to}`);
+    console.log(
+      `[EMAIL SERVICE] Email pemulihan kata sandi berhasil dikirim ke: ${targetRecipient}${
+        isDummy ? ` (Diteruskan dari akun dummy: ${to})` : ''
+      }`
+    );
     return { success: true, mocked: false };
   } catch (error: any) {
     console.error('[EMAIL SERVICE] Gagal mengirim email via Google SMTP:', error?.message || error);
-    // Graceful: Jangan gagalkan respon jika koneksi SMTP bermasalah, tapi laporkan
     return { success: false, error: error?.message || 'Gagal mengirim email' };
   }
 };
+

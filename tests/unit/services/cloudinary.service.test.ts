@@ -165,5 +165,40 @@ describe('Cloudinary Service Tests (src/services/cloudinary.service.ts)', () => 
       expect(result).toBe(true);
       expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('cares-damage-reports/sample-id');
     });
+
+    it('harus mengekstrak public_id dari full HTTP URL dan memanggil destroy', async () => {
+      process.env.CLOUDINARY_CLOUD_NAME = 'test-cloud';
+      process.env.CLOUDINARY_API_KEY = 'test-key';
+      process.env.CLOUDINARY_API_SECRET = 'test-secret';
+
+      (cloudinary.uploader.destroy as any).mockResolvedValueOnce({ result: 'ok' });
+
+      const sampleUrl = 'https://res.cloudinary.com/test-cloud/image/upload/v12345/cares-damage-reports/foto-kerusakan.jpg';
+      const result = await deleteFromCloudinary(sampleUrl);
+
+      expect(result).toBe(true);
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('cares-damage-reports/foto-kerusakan');
+    });
+
+    it('harus mengembalikan false jika uploader.destroy gagal atau melempar error', async () => {
+      process.env.CLOUDINARY_CLOUD_NAME = 'test-cloud';
+      process.env.CLOUDINARY_API_KEY = 'test-key';
+      process.env.CLOUDINARY_API_SECRET = 'test-secret';
+
+      (cloudinary.uploader.destroy as any).mockRejectedValueOnce(new Error('Cloudinary timeout'));
+
+      const result = await deleteFromCloudinary('cares-damage-reports/fail-id');
+      expect(result).toBe(false);
+    });
+
+    it('harus mengembalikan false jika parameter publicIdOrUrl kosong', async () => {
+      process.env.CLOUDINARY_CLOUD_NAME = 'test-cloud';
+      process.env.CLOUDINARY_API_KEY = 'test-key';
+      process.env.CLOUDINARY_API_SECRET = 'test-secret';
+
+      const result = await deleteFromCloudinary('');
+      expect(result).toBe(false);
+    });
   });
 });
+

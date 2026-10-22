@@ -411,5 +411,44 @@ describe('Report API Tests (/api/v1/reports/*)', () => {
       expect(res.body.data.user.nama).toBe('Anonim');
       expect(res.body.data.user.email).toBe('hidden@anonymous.local');
     });
+
+    it('should return 500 when database encounters error during GET /reports/:id', async () => {
+      mockPrisma.report.findUnique.mockRejectedValue(new Error('DB failure'));
+
+      const res = await request(app)
+        .get('/api/v1/reports/some-id')
+        .set(getAuthHeaders('mahasiswa'));
+
+      expect(res.status).toBe(500);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toBe('Gagal mengambil detail laporan');
+    });
+
+    it('should return 500 when database encounters error during GET /reports', async () => {
+      mockPrisma.report.findMany.mockRejectedValue(new Error('DB failure'));
+
+      const res = await request(app)
+        .get('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'));
+
+      expect(res.status).toBe(500);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toBe('Gagal mengambil daftar laporan publik');
+    });
+
+    it('should return 500 when database encounters error during GET /reports/my-reports', async () => {
+      mockPrisma.report.findMany.mockRejectedValue(new Error('DB failure'));
+
+      const res = await request(app)
+        .get('/api/v1/reports/my-reports')
+        .set(getAuthHeaders('mahasiswa'));
+
+      expect(res.status).toBe(500);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toBe('Gagal mengambil laporan');
+    });
   });
 });
+
+
+

@@ -154,5 +154,44 @@ describe('Notification API Tests (/api/v1/notifications/*)', () => {
       const res = await request(app).patch('/api/v1/notifications/read-all');
       expect(res.status).toBe(401);
     });
+
+    it('should return 500 when database throws an error', async () => {
+      mockPrisma.notification.updateMany.mockRejectedValue(new Error('Database connection failed'));
+
+      const res = await request(app)
+        .patch('/api/v1/notifications/read-all')
+        .set(getAuthHeaders('mahasiswa'));
+
+      expect(res.status).toBe(500);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toBe('Gagal memperbarui seluruh notifikasi');
+    });
+  });
+
+  describe('Error handling branches', () => {
+    it('should return 500 when GET /notifications encounters database error', async () => {
+      mockPrisma.notification.findMany.mockRejectedValue(new Error('DB failure'));
+
+      const res = await request(app)
+        .get('/api/v1/notifications')
+        .set(getAuthHeaders('mahasiswa'));
+
+      expect(res.status).toBe(500);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toBe('Gagal mengambil notifikasi');
+    });
+
+    it('should return 500 when PATCH /notifications/:id/read encounters database error', async () => {
+      mockPrisma.notification.findUnique.mockRejectedValue(new Error('DB query error'));
+
+      const res = await request(app)
+        .patch('/api/v1/notifications/notif-1/read')
+        .set(getAuthHeaders('mahasiswa'));
+
+      expect(res.status).toBe(500);
+      expect(res.body.status).toBe('error');
+      expect(res.body.message).toBe('Gagal memperbarui notifikasi');
+    });
   });
 });
+

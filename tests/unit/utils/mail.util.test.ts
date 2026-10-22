@@ -38,10 +38,15 @@ describe('Mail Utility Tests (src/utils/mail.util.ts)', () => {
       const transporter = createEmailTransporter();
 
       expect(createSpy).toHaveBeenCalledWith({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
           user: 'cares@gmail.com',
           pass: 'app-password',
+        },
+        tls: {
+          rejectUnauthorized: false,
         },
       });
       expect(transporter).toBeDefined();
@@ -65,6 +70,9 @@ describe('Mail Utility Tests (src/utils/mail.util.ts)', () => {
         auth: {
           user: 'smtp-user',
           pass: 'smtp-pass',
+        },
+        tls: {
+          rejectUnauthorized: false,
         },
       });
       expect(transporter).toBeDefined();
@@ -101,7 +109,7 @@ describe('Mail Utility Tests (src/utils/mail.util.ts)', () => {
       });
 
       expect(result).toEqual({ success: true, mocked: true });
-      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[EMAIL SERVICE - SIMULASI GMAIL / GOOGLE]'));
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[EMAIL SERVICE - SIMULASI'));
     });
 
     it('should send email successfully when transporter is configured', async () => {
