@@ -21,10 +21,43 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    if (!judul || !deskripsi || (!facilityId && !namaRuangan && !namaGedung)) {
+    const trimmedJudul = String(judul || '').trim();
+    const trimmedDeskripsi = String(deskripsi || '').trim();
+    const trimmedGedung = String(namaGedung || '').trim();
+    const trimmedRuangan = String(namaRuangan || '').trim();
+
+    if (!trimmedJudul || !trimmedDeskripsi || (!facilityId && !trimmedRuangan && !trimmedGedung)) {
       return res.status(400).json({
         status: 'error',
         message: 'Judul, deskripsi, dan fasilitas wajib diisi.',
+      });
+    }
+
+    if (trimmedDeskripsi.length < 10) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Deskripsi masalah minimal 10 karakter.',
+      });
+    }
+
+    if (trimmedDeskripsi.length > 1000) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Deskripsi masalah maksimal 1000 karakter.',
+      });
+    }
+
+    if (trimmedGedung && (trimmedGedung.length < 3 || trimmedGedung.length > 100)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nama gedung/area harus antara 3 hingga 100 karakter.',
+      });
+    }
+
+    if (trimmedRuangan && (trimmedRuangan.length < 3 || trimmedRuangan.length > 100)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nama ruangan/lokasi spesifik harus antara 3 hingga 100 karakter.',
       });
     }
 

@@ -119,6 +119,64 @@ describe('Report API Tests (/api/v1/reports/*)', () => {
       expect(res.body.message).toBe('Judul, deskripsi, dan fasilitas wajib diisi.');
     });
 
+    it('should return 400 when deskripsi is less than 10 characters', async () => {
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Lampu Rusak',
+          deskripsi: 'Pendek',
+          facilityId: 'fac-1',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Deskripsi masalah minimal 10 karakter.');
+    });
+
+    it('should return 400 when deskripsi exceeds 1000 characters', async () => {
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Lampu Rusak',
+          deskripsi: 'A'.repeat(1001),
+          facilityId: 'fac-1',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Deskripsi masalah maksimal 1000 karakter.');
+    });
+
+    it('should return 400 when namaGedung is less than 3 characters', async () => {
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Lampu Rusak',
+          deskripsi: 'Lampu ruangan kuliah padam total',
+          namaGedung: 'G',
+          namaRuangan: 'Ruang 101',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Nama gedung/area harus antara 3 hingga 100 karakter.');
+    });
+
+    it('should return 400 when namaRuangan is less than 3 characters', async () => {
+      const res = await request(app)
+        .post('/api/v1/reports')
+        .set(getAuthHeaders('mahasiswa'))
+        .send({
+          judul: 'Lampu Rusak',
+          deskripsi: 'Lampu ruangan kuliah padam total',
+          namaGedung: 'Gedung TULT',
+          namaRuangan: 'R',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Nama ruangan/lokasi spesifik harus antara 3 hingga 100 karakter.');
+    });
+
     it('should return 404 when the specified facility does not exist', async () => {
       mockPrisma.facility.findUnique.mockResolvedValue(null);
 
