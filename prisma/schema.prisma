@@ -69,16 +69,29 @@ model Report {
   isAnonymous     Boolean         @default(false) // Ditambahkan: Dukungan laporan anonim
   userId          String
   facilityId      String
+  diprosesAt      DateTime?
+  selesaiAt       DateTime?
+  ditolakAt       DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  user          User           @relation("UserReports", fields: [userId], references: [id])
-  facility      Facility       @relation(fields: [facilityId], references: [id])
-  photos        ReportPhoto[]
-  notifications Notification[]
+  user             User              @relation("UserReports", fields: [userId], references: [id])
+  facility         Facility          @relation(fields: [facilityId], references: [id])
+  photos           ReportPhoto[]
+  completionPhotos CompletionPhoto[]
+  notifications    Notification[]
 }
 
 model ReportPhoto {
+  id        String   @id @default(uuid())
+  url       String
+  reportId  String
+  createdAt DateTime @default(now())
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model CompletionPhoto {
   id        String   @id @default(uuid())
   url       String
   reportId  String

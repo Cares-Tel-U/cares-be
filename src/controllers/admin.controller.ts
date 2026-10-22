@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createNotification } from '../utils/notification.util';
+import { uploadFileToStorage, uploadBase64ToStorage } from '../services/cloudinary.service';
 
 const prisma = new PrismaClient();
 
@@ -31,6 +32,7 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
           },
         },
         photos: true,
+        completionPhotos: true,
       },
       orderBy: { createdAt: 'desc' },
       ...(isPaginated && {
@@ -80,7 +82,7 @@ export const getAllReportsForAdmin = async (req: AuthRequest, res: Response) => 
 export const updateReportStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, rejectionReason } = req.body;
+    const { status, rejectionReason, catatan, completionNote } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -115,11 +117,96 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const updateData: any = {
+      status,
+    };
+
+    // 1. Catat Waktu Tahapan Perubahan Status
+    if (status === 'DIPROSES') {
+      updateData.diprosesAt = existingReport.diprosesAt || new Date();
+    } else if (status === 'SELESAI') {
+      if (!existingReport.diprosesAt) {
+        updateData.diprosesAt = existingReport.createdAt;
+      }
+      updateData.selesaiAt = new Date();
+      if (catatan || completionNote) {
+        updateData.catatan = catatan || completionNote;
+      }
+    } else if (status === 'DITOLAK') {
+      updateData.ditolakAt = new Date();
+      if (rejectionReason) {
+        updateData.rejectionReason = rejectionReason;
+      }
+    }
+
+    // 2. Simpan Bukti Foto Pengerjaan Selesai jika Status SELESAI
+    const completionPhotoUrls: string[] = [];
+
+    // Dari upload berkas fisik Multer (req.files)
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files as Express.Multer.File[]) {
+        const uploadResult = await uploadFileToStorage(file.path);
+        completionPhotoUrls.push(uploadResult.url);
+      }
+    }
+
+    // Dari body payload (completionPhotos, proofImages, atau photos)
+    const rawProofs = req.body.completionPhotos || req.body.proofImages || req.body.completionProofs || (status === 'SELESAI' ? req.body.photos : null);
+    if (rawProofs) {
+      const candidates: string[] = [];
+      if (Array.isArray(rawProofs)) {
+        rawProofs.forEach((p) => {
+          if (typeof p === 'string' && p.trim()) candidates.push(p.trim());
+        });
+      } else if (typeof rawProofs === 'string' && rawProofs.trim()) {
+        try {
+          const parsed = JSON.parse(rawProofs);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((p) => {
+              if (typeof p === 'string' && p.trim()) candidates.push(p.trim());
+            });
+          } else {
+            candidates.push(rawProofs.trim());
+          }
+        } catch {
+          candidates.push(rawProofs.trim());
+        }
+      }
+
+      for (const item of candidates) {
+        if (item.startsWith('data:image')) {
+          const uploaded = await uploadBase64ToStorage(item);
+          completionPhotoUrls.push(uploaded.url);
+        } else {
+          completionPhotoUrls.push(item);
+        }
+      }
+    }
+
+    if (completionPhotoUrls.length > 0) {
+      await prisma.completionPhoto.createMany({
+        data: completionPhotoUrls.map((url) => ({
+          reportId: String(id),
+          url,
+        })),
+      });
+    }
+
     const updatedReport = await prisma.report.update({
       where: { id: String(id) },
-      data: {
-        status,
-        ...(rejectionReason && { rejectionReason }),
+      data: updateData,
+      include: {
+        facility: true,
+        photos: true,
+        completionPhotos: true,
+        user: {
+          select: {
+            id: true,
+            nama: true,
+            email: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -237,14 +324,17 @@ export const updateReportsBulkStatus = async (req: AuthRequest, res: Response) =
 
     const validIds = reportIds.map(String);
 
+    const bulkUpdateData: any = { status };
+    if (status === 'DIPROSES') bulkUpdateData.diprosesAt = new Date();
+    if (status === 'SELESAI') bulkUpdateData.selesaiAt = new Date();
+    if (status === 'DITOLAK') bulkUpdateData.ditolakAt = new Date();
+    if (rejectionReason) bulkUpdateData.rejectionReason = rejectionReason;
+
     const updateResult = await prisma.report.updateMany({
       where: {
         id: { in: validIds },
       },
-      data: {
-        status,
-        ...(rejectionReason && { rejectionReason }),
-      },
+      data: bulkUpdateData,
     });
 
     // Kirim notifikasi otomatis ke masing-masing pelapor

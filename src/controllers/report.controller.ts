@@ -64,22 +64,7 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // 2. Cegah Laporan Duplikat untuk Fasilitas yang Sedang Aktif (TC11)
-    const existingActiveReport = await prisma.report.findFirst({
-      where: {
-        facilityId: resolvedFacilityId,
-        status: { in: ['PENDING', 'DIPROSES'] },
-      },
-    });
-
-    if (existingActiveReport) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Fasilitas ini sedang dalam penanganan atau memiliki laporan aktif yang belum selesai.',
-      });
-    }
-
-    // 3. Batasi Pengguna Maksimal 3 Laporan per Hari (FR-RPT-05 / TC16)
+    // 2. Batasi Pengguna Maksimal 3 Laporan per Hari (FR-RPT-05 / TC16)
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayReportsCount = await prisma.report.count({
@@ -176,6 +161,7 @@ export const createReport = async (req: AuthRequest, res: Response) => {
       include: {
         facility: true,
         photos: true,
+        completionPhotos: true,
       },
     });
 
@@ -224,6 +210,7 @@ export const getAllPublicReports = async (req: AuthRequest, res: Response) => {
       include: {
         facility: true,
         photos: true,
+        completionPhotos: true,
         user: {
           select: {
             id: true,
@@ -308,6 +295,7 @@ export const getMyReports = async (req: AuthRequest, res: Response) => {
       include: {
         facility: true,
         photos: true,
+        completionPhotos: true,
       },
       orderBy: { createdAt: 'desc' },
       ...(isPaginated && {
@@ -358,6 +346,7 @@ export const getReportById = async (req: AuthRequest, res: Response) => {
       include: {
         facility: true,
         photos: true,
+        completionPhotos: true,
         user: {
           select: {
             id: true,

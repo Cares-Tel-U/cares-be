@@ -172,22 +172,26 @@ describe('Report API Tests (/api/v1/reports/*)', () => {
       });
     });
 
-    it('should return 400 when facility already has an active report (PENDING / DIPROSES)', async () => {
+    it('should allow reporting a facility even if it already has active reports', async () => {
       mockPrisma.facility.findUnique.mockResolvedValue(mockFacilities.kelas);
-      mockPrisma.report.findFirst.mockResolvedValue(mockReports.pendingReport);
+      mockPrisma.report.count.mockResolvedValue(0);
+      mockPrisma.report.create.mockResolvedValue({
+        ...mockReports.pendingReport,
+        judul: 'Laporan Lanjutan',
+      });
 
       const res = await request(app)
         .post('/api/v1/reports')
         .set(getAuthHeaders('mahasiswa'))
         .send({
-          judul: 'Laporan Ganda',
-          deskripsi: 'Mencoba membuat laporan kedua pada fasilitas yang sama',
+          judul: 'Laporan Lanjutan',
+          deskripsi: 'Membuat laporan pada fasilitas yang sudah memiliki laporan sebelumnya',
           facilityId: mockFacilities.kelas.id,
         });
 
-      expect(res.status).toBe(400);
-      expect(res.body.message).toContain('Fasilitas ini sedang dalam penanganan atau memiliki laporan aktif');
-      expect(mockPrisma.report.create).not.toHaveBeenCalled();
+      expect(res.status).toBe(201);
+      expect(res.body.status).toBe('success');
+      expect(mockPrisma.report.create).toHaveBeenCalled();
     });
 
     it('should return 400 when user exceeds daily quota of 3 reports', async () => {
