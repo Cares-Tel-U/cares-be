@@ -184,6 +184,21 @@ export const updateReportStatus = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    if (status === 'SELESAI') {
+      if (completionPhotoUrls.length === 0) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Lampiran foto bukti perbaikan wajib disertakan (minimal 1 foto, maksimal 3 foto).',
+        });
+      }
+      if (completionPhotoUrls.length > 3) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Jumlah foto melebihi batas. Maksimal 3 file foto.',
+        });
+      }
+    }
+
     if (completionPhotoUrls.length > 0) {
       await prisma.completionPhoto.createMany({
         data: completionPhotoUrls.map((url) => ({

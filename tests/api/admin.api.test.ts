@@ -16,6 +16,9 @@ const { mockPrisma } = vi.hoisted(() => {
       notification: {
         create: vi.fn(),
       },
+      completionPhoto: {
+        createMany: vi.fn(),
+      },
     },
   };
 });
@@ -24,6 +27,7 @@ vi.mock('@prisma/client', () => {
   class MockPrismaClient {
     report = mockPrisma.report;
     notification = mockPrisma.notification;
+    completionPhoto = mockPrisma.completionPhoto;
   }
   return {
     PrismaClient: MockPrismaClient,
@@ -151,6 +155,72 @@ describe('Admin API Tests (/api/v1/admin/*)', () => {
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('Alasan penolakan wajib diisi');
       expect(mockPrisma.report.update).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when status is SELESAI but completion photos are omitted', async () => {
+      mockPrisma.report.findUnique.mockResolvedValue(mockReports.pendingReport);
+
+      const res = await request(app)
+        .patch(`/api/v1/admin/reports/${mockReports.pendingReport.id}/status`)
+        .set(getAuthHeaders('sarpras'))
+        .send({ status: 'SELESAI' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Lampiran foto bukti perbaikan wajib disertakan');
+      expect(mockPrisma.report.update).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when status is SELESAI but completion photos exceed 3', async () => {
+      mockPrisma.report.findUnique.mockResolvedValue(mockReports.pendingReport);
+
+      const res = await request(app)
+        .patch(`/api/v1/admin/reports/${mockReports.pendingReport.id}/status`)
+        .set(getAuthHeaders('sarpras'))
+        .send({
+          status: 'SELESAI',
+          completionPhotos: [
+            'http://example.com/1.jpg',
+            'http://example.com/2.jpg',
+            'http://example.com/3.jpg',
+            'http://example.com/4.jpg'
+          ]
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Maksimal 3 file foto');
+      expect(mockPrisma.report.update).not.toHaveBeenCalled();
+    });
+
+    it('should update status to SELESAI when 1 to 3 completion photos are provided', async () => {
+      mockPrisma.report.findUnique.mockResolvedValue(mockReports.pendingReport);
+      mockPrisma.report.update.mockResolvedValue({
+        ...mockReports.pendingReport,
+        status: 'SELESAI',
+        selesaiAt: new Date(),
+      });
+      mockPrisma.completionPhoto.createMany.mockResolvedValue({ count: 2 });
+      mockPrisma.notification.create.mockResolvedValue({});
+
+      const res = await request(app)
+        .patch(`/api/v1/admin/reports/${mockReports.pendingReport.id}/status`)
+        .set(getAuthHeaders('sarpras'))
+        .send({
+          status: 'SELESAI',
+          completionPhotos: ['http://example.com/proof1.jpg', 'http://example.com/proof2.jpg'],
+          catatan: 'Fasilitas selesai diperbaiki dan siap digunakan kembali'
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(mockPrisma.completionPhoto.createMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ url: 'http://example.com/proof1.jpg' }),
+            expect.objectContaining({ url: 'http://example.com/proof2.jpg' }),
+          ]),
+        })
+      );
+      expect(mockPrisma.notification.create).toHaveBeenCalled();
     });
 
     it('should return 400 when status value is invalid', async () => {
