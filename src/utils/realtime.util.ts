@@ -7,6 +7,7 @@ export interface RealtimeEvent {
     | 'REPORT_STATUS_CHANGED'
     | 'NOTIFICATION_CREATED'
     | 'NOTIFICATION_PREFERENCE_CHANGED'
+    | 'USER_AVATAR_CHANGED'
     | 'PING';
   data?: any;
   timestamp: string;
@@ -15,7 +16,7 @@ export interface RealtimeEvent {
 interface SSEClient {
   id: string;
   res: Response;
-  userId?: string;
+  userId: string | undefined;
 }
 
 const clients: Map<string, SSEClient> = new Map();
